@@ -27,6 +27,12 @@ MVP 表：`users / posts / media / comments`（结构见 TRD 第 5 节）。二�
 - `users.email_verified`（boolean，默认 false）：邮箱验证状态，**可选验证，不阻断登录**（PRD A3 行为不变）。
 - 博主删除任意评论：`DELETE /api/comments/{id}` 鉴权扩展为"评论作者或博主"；评论管理接口 `GET|DELETE /api/admin/comments`（仅博主）。
 
+三期新增：
+
+- `post_favorites`：动态收藏，(post_id, user_id) 唯一 + (user_id, created_at) 索引；`POST /api/posts/{id}/favorite`（toggle）、`GET /api/me/favorites`（我的收藏，分页）；详情返回 `favorite_count/favorited`（未登录 false）。
+- `drafts`：草稿箱（仅博主），独立成表不触碰 posts；`media_ids` JSONB 存"已上传未绑定"媒体 id；`POST/GET/PUT/DELETE /api/drafts` + `POST /api/drafts/{id}/publish`（发布时校验媒体存在/占用并绑定，成功后删草稿）。
+- 附件上传进度：纯前端 axios `onUploadProgress`（media.ts 的 `uploadMedia` 带 `onProgress` 回调），接口与表结构零改动。
+
 **注意**：SQLAlchemy `create_all` 不会修改已存在的表——新增列/表上线到已有开发库时需手动 `ALTER TABLE`（如 `users` 加 `email_verified`）。
 
 ## 邮件发送（二期）
