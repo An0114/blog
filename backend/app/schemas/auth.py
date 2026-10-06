@@ -33,6 +33,7 @@ class UserOut(BaseModel):
     email: str
     role: str
     status: str
+    email_verified: bool = False
     created_at: datetime
 
 
@@ -41,3 +42,34 @@ class TokenResponse(BaseModel):
 
     token: str
     user: UserOut
+
+
+class ConfirmTokenRequest(BaseModel):
+    """POST /api/auth/verify-email/confirm 请求体。"""
+
+    token: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    """POST /api/auth/forgot-password 请求体。"""
+
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """POST /api/auth/reset-password 请求体。"""
+
+    token: str
+    new_password: str = Field(min_length=6, max_length=64)
+
+
+class MessageResponse(BaseModel):
+    """通用消息响应。"""
+
+    message: str
+
+
+class VerifyEmailRequestOut(MessageResponse):
+    """发送验证邮件响应：提示 + 有效期。"""
+
+    expires_minutes: int

@@ -28,6 +28,17 @@ class Settings(BaseSettings):
     # 上传文件存储目录（相对 backend 运行目录；不入 Git）
     upload_dir: str = "uploads"
 
+    # 邮件服务（SMTP，二期：邮箱验证/找回密码）。smtp_host 留空时邮件内容输出到后端日志
+    smtp_host: str = ""
+    smtp_port: int = 465
+    smtp_user: str = ""
+    smtp_password: str = ""
+    mail_from: str = "blog@example.com"
+    # 前端地址：用于拼验证邮箱/重置密码的链接
+    frontend_base_url: str = "http://localhost:5173"
+    # 邮件令牌有效期（分钟）
+    email_token_expire_minutes: int = 30
+
     @property
     def cors_origin_list(self) -> list[str]:
         """把逗号分隔的 CORS 配置解析成列表。"""
