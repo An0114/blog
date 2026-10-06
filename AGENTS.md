@@ -35,6 +35,19 @@ MVP 表：`users / posts / media / comments`（结构见 TRD 第 5 节）。二�
 
 **注意**：SQLAlchemy `create_all` 不会修改已存在的表——新增列/表上线到已有开发库时需手动 `ALTER TABLE`（如 `users` 加 `email_verified`）。
 
+## 前端 UI 与导航权限（2026-10 新增）
+
+- 品牌：站点名「未完成的页」，标语「这里只放我真正在乎的文字」，定位「长期写作｜私人笔记｜阅读痕迹｜生活片段」；logo/标题沿用设计图，未引入图片资源。
+- 主题：深色文艺风格全量定义在 `frontend/src/index.css`（`:root` 色板 token、纸感卡片 `.page/.post-card`、侧栏 `.sidebar`）；页面级组件 pages/ 与可复用组件 components/ 约定不变。
+- 导航可见性矩阵（前端约束，后端鉴权仍兜底）：
+  - 所有人：动态 `/`、关于我 `/about`（纯前端静态页，无后端依赖）；
+  - 已登录：收藏 `/favorites`；
+  - 博主：发布 `/publish`、草稿箱 `/drafts`、用户管理 `/admin`；
+  - 未登录侧栏底部显示 登录/注册。
+- 路由守卫：`frontend/src/components/AdminRoute.tsx`（未登录跳 /login；非博主渲染"仅博主可访问该页面"）；`/account`、`/favorites` 仍用 ProtectedRoute。
+- 工具：`frontend/src/utils/format.ts` 的 `readingMinutes(content)` 按去空白字数/300 估算阅读时长（≥1 分钟），用于详情页与发布页统计。
+- 关于我页文案集中在 `frontend/src/pages/AboutPage.tsx` 的 `SITE` 常量，可自行修改。
+
 ## 邮件发送（二期）
 
 - 用标准库 `smtplib`，不引入第三方依赖；`send_email` 在 `app/services/mail.py`。
