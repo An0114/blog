@@ -4,6 +4,7 @@ import { NavBar } from './components/NavBar'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AccountPage } from './pages/AccountPage'
 import { AdminPage } from './pages/AdminPage'
+import { DraftsPage } from './pages/DraftsPage'
 import { FavoritesPage } from './pages/FavoritesPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { HomePage } from './pages/HomePage'
@@ -49,6 +50,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <FavoritesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="drafts"
+          element={
+            <ProtectedRoute>
+              <DraftsPage />
             </ProtectedRoute>
           }
         />

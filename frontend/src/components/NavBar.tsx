@@ -31,6 +31,11 @@ export function NavBar() {
           </NavLink>
         )}
         {isAdmin && (
+          <NavLink to="/drafts">
+            草稿箱
+          </NavLink>
+        )}
+        {isAdmin && (
           <NavLink to="/admin">
             用户管理
           </NavLink>

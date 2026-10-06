@@ -102,6 +102,30 @@ export interface CommentCreate {
   content: string
 }
 
+export interface DraftCreate {
+  title: string
+  content: string
+  category: PostCategory
+  media_ids?: number[]
+}
+
+export interface DraftOut {
+  id: number
+  title: string
+  content: string
+  category: PostCategory
+  media_ids: number[]
+  created_at: string
+  updated_at: string
+}
+
+export interface DraftListResponse {
+  items: DraftOut[]
+  total: number
+  page: number
+  size: number
+}
+
 export interface AuthResponse {
   token: string
   user: User

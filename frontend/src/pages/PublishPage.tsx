@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { extractErrorDetail } from '../api/client'
+import { createDraft, deleteDraft, getDraft, updateDraft } from '../api/drafts'
 import { uploadMedia } from '../api/media'
 import { createPost } from '../api/posts'
 import type { MediaOut, PostCategory } from '../api/types'
@@ -21,6 +22,8 @@ const CATEGORY_OPTIONS: { value: PostCategory; label: string }[] = [
 
 export function PublishPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const draftId = searchParams.get('draft') ? Number(searchParams.get('draft')) : null
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [title, setTitle] = useState('')
@@ -30,9 +33,33 @@ export function PublishPage() {
   const [mediaIds, setMediaIds] = useState<number[]>([])
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const nextKey = useRef(1)
+
+  // 草稿编辑模式：加载草稿内容回填表单（媒体 id 已上传待绑定，直接沿用）
+  useEffect(() => {
+    if (draftId === null) return
+    const id = draftId // 显式收窄：TS 不把 const 联合类型的收窄传播进异步闭包
+    let ignore = false
+    async function loadDraft() {
+      try {
+        const draft = await getDraft(id)
+        if (ignore) return
+        setTitle(draft.title)
+        setContent(draft.content)
+        setCategory(draft.category)
+        setMediaIds(draft.media_ids)
+      } catch (err) {
+        if (!ignore) setError(extractErrorDetail(err))
+      }
+    }
+    void loadDraft()
+    return () => {
+      ignore = true
+    }
+  }, [draftId])
 
   const handleSelectFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files ?? [])
@@ -88,11 +115,42 @@ export function PublishPage() {
         category,
         media_ids: mediaIds.length > 0 ? mediaIds : undefined,
       })
+      // 草稿编辑模式下发布：清理已发布的草稿，避免残留
+      if (draftId) {
+        await deleteDraft(draftId).catch(() => undefined)
+      }
       navigate(`/posts/${post.id}`)
     } catch (err) {
       setError(extractErrorDetail(err))
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleSaveDraft = async () => {
+    if (savingDraft || !title.trim() || !content.trim()) return
+    setSavingDraft(true)
+    setError('')
+    setInfo('')
+    try {
+      const payload = {
+        title: title.trim(),
+        content: content.trim(),
+        category,
+        media_ids: mediaIds,
+      }
+      if (draftId) {
+        await updateDraft(draftId, payload)
+        setInfo('草稿已更新')
+      } else {
+        await createDraft(payload)
+        setInfo('草稿已保存')
+      }
+      navigate('/drafts')
+    } catch (err) {
+      setError(extractErrorDetail(err))
+    } finally {
+      setSavingDraft(false)
     }
   }
 
@@ -170,13 +228,32 @@ export function PublishPage() {
         </div>
 
         {error && <p className="error-text">{error}</p>}
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={submitting || pendingFiles.length > 0}
-        >
-          {submitting ? '发布中…' : '发布'}
-        </button>
+        <div className="publish-actions">
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={submitting || pendingFiles.length > 0}
+          >
+            {submitting ? '发布中…' : '发布'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => void handleSaveDraft()}
+            disabled={savingDraft || !title.trim() || !content.trim()}
+          >
+            {savingDraft ? '保存中…' : draftId ? '更新草稿' : '存为草稿'}
+          </button>
+          {draftId && (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => navigate('/drafts')}
+            >
+              返回草稿箱
+            </button>
+          )}
+        </div>
         {pendingFiles.length > 0 && (
           <span className="form-hint"> 请先完成媒体上传再发布</span>
         )}
