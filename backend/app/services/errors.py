@@ -29,3 +29,10 @@ class AccountDisabledError(ServiceError):
     """账号被禁用或已注销，无法登录。"""
 
     status_code = 403
+
+
+class PermissionDeniedError(ServiceError):
+    """无权执行操作（如删除他人评论）。"""
+
+    status_code = 403
+    detail = "无权执行此操作"
