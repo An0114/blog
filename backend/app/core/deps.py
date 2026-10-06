@@ -57,3 +57,13 @@ def get_current_user(
             detail="账号已被禁用",
         )
     return user
+
+
+def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
+    """仅博主（role=admin）可用的依赖：发布/删除动态、用户管理等。"""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="仅博主可执行此操作",
+        )
+    return current_user

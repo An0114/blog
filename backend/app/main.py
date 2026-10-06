@@ -10,8 +10,8 @@ from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import Base, SessionLocal, engine
-from app.models import user  # noqa: F401  注册 User 表到 Base.metadata
-from app.routers import auth
+from app.models import post, user  # noqa: F401  注册全部表到 Base.metadata
+from app.routers import auth, posts
 from app.services.errors import ServiceError
 
 
@@ -34,6 +34,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(posts.router)
 
 
 @app.exception_handler(ServiceError)
