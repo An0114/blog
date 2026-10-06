@@ -4,7 +4,7 @@
 
 ## 项目简介
 
-个人博客网站：博主发布"项目 / 日常 / 日记"动态（支持图片、视频），用户注册登录后可评论，博主可通过管理页面管理用户。
+个人博客网站：博主发布"项目 / 日常 / 日记"动态（支持图片、视频），用户注册登录后可评论（点赞），博主可通过管理页面管理用户、评论与内容。
 
 - 技术栈：后端 Python FastAPI + SQLAlchemy + PostgreSQL；前端 React + Vite + TypeScript。
 - 启动：
@@ -17,6 +17,23 @@
 - `backend/app/`：路由(routers) → 业务(services) → 数据(models)，分层清晰，禁止跨层调用。
 - `frontend/src/pages/`：页面级组件；`components/`：可复用组件。
 - `uploads/` 不入 Git；数据库为 PostgreSQL（本地开发用 Docker 起实例）；密钥与配置一律走 `.env`（模板见 `.env.example`），禁止硬编码。
+
+## 数据模型与二期功能（2026-10 新增）
+
+MVP 表：`users / posts / media / comments`（结构见 TRD 第 5 节）。二期新增：
+
+- `post_likes`：动态点赞，(post_id, user_id) 唯一；删除动态/用户时级联清理；列表与详情返回 `like_count`，详情另返回当前用户 `liked`。
+- `email_tokens`：邮箱验证 / 密码重置令牌（`purpose=verify_email|reset_password`，一次性 + 30 分钟过期）。
+- `users.email_verified`（boolean，默认 false）：邮箱验证状态，**可选验证，不阻断登录**（PRD A3 行为不变）。
+- 博主删除任意评论：`DELETE /api/comments/{id}` 鉴权扩展为"评论作者或博主"；评论管理接口 `GET|DELETE /api/admin/comments`（仅博主）。
+
+**注意**：SQLAlchemy `create_all` 不会修改已存在的表——新增列/表上线到已有开发库时需手动 `ALTER TABLE`（如 `users` 加 `email_verified`）。
+
+## 邮件发送（二期）
+
+- 用标准库 `smtplib`，不引入第三方依赖；`send_email` 在 `app/services/mail.py`。
+- `.env` 配置 `SMTP_HOST/PORT/USER/PASSWORD` 后真实发送；**留空时验证/重置链接输出到后端日志**（开发联调模式）。
+- 找回密码接口对不存在的邮箱也返回成功，防邮箱枚举。
 
 ## 代码规范
 
@@ -35,7 +52,7 @@
 ## 测试与构建
 
 - 后端：`cd backend && pytest`（每个任务完成后补对应接口测试）。
-- 前端：`cd frontend && npm run build` 必须通过。
+- 前端：`cd frontend && npm run build` 必须通过；`npm run lint`（oxlint）应无警告；`npm run test`（vitest）。
 - **提交前必须运行测试与构建**，全部通过才允许 commit。
 
 ## 工作流约定
