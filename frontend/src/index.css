@@ -346,6 +346,32 @@ body {
   background: #eaeef2;
 }
 
+/* 上传进度条（三期功能，PRD A12） */
+.upload-progress {
+  position: relative;
+  width: 160px;
+  height: 14px;
+  border: 1px solid #d0d7de;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.upload-progress-bar {
+  height: 100%;
+  background: #2f81f7;
+  transition: width 0.2s ease;
+}
+
+.upload-progress span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #1f2328;
+}
+
 .empty-tip {
   color: #57606a;
   text-align: center;

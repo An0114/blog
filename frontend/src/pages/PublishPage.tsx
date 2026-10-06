@@ -12,6 +12,7 @@ interface PendingFile {
   file: File
   type: 'image' | 'video'
   previewUrl: string
+  progress: number | null // 上传进度 0-100；null 表示尚未上传
 }
 
 const CATEGORY_OPTIONS: { value: PostCategory; label: string }[] = [
@@ -68,6 +69,7 @@ export function PublishPage() {
       file,
       type: file.type.startsWith('video/') ? 'video' : 'image',
       previewUrl: URL.createObjectURL(file),
+      progress: null,
     }))
     setPendingFiles((prev) => [...prev, ...next])
     e.target.value = '' // 允许重复选择同一文件
@@ -89,7 +91,13 @@ export function PublishPage() {
     try {
       const uploaded: MediaOut[] = []
       for (const p of pendingFiles) {
-        uploaded.push(await uploadMedia(p.file, p.type))
+        // 逐文件上传并实时回写进度（PRD A12：附件上传进度）
+        const media = await uploadMedia(p.file, p.type, (percent) => {
+          setPendingFiles((prev) =>
+            prev.map((item) => (item.key === p.key ? { ...item, progress: percent } : item)),
+          )
+        })
+        uploaded.push(media)
       }
       setMediaIds((prev) => [...prev, ...uploaded.map((m) => m.id)])
       pendingFiles.forEach((p) => URL.revokeObjectURL(p.previewUrl))
@@ -210,10 +218,20 @@ export function PublishPage() {
                   ) : (
                     <img src={p.previewUrl} alt="待上传" />
                   )}
+                  {p.progress !== null && p.progress < 100 && (
+                    <div className="upload-progress">
+                      <div
+                        className="upload-progress-bar"
+                        style={{ width: `${p.progress}%` }}
+                      />
+                      <span>{p.progress}%</span>
+                    </div>
+                  )}
                   <button
                     type="button"
                     className="btn btn-ghost"
                     onClick={() => removePending(p.key)}
+                    disabled={uploading}
                   >
                     移除
                   </button>
