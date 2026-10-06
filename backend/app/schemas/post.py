@@ -5,6 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.comment import CommentOut
 from app.schemas.media import MediaOut
 
 # 动态分类（TRD 第 5 节）：project / daily / diary
@@ -21,7 +22,7 @@ class PostCreate(BaseModel):
 
 
 class PostOut(BaseModel):
-    """动态详情响应体：正文 + 媒体列表。"""
+    """动态详情响应体：正文 + 媒体列表 + 评论列表（TRD 第 4 节）。"""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -33,6 +34,7 @@ class PostOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     media: list[MediaOut] = Field(default_factory=list)
+    comments: list[CommentOut] = Field(default_factory=list)
 
 
 class PostListItem(PostOut):

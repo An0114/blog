@@ -16,6 +16,7 @@ from app.schemas.post import (
     PostListResponse,
     PostOut,
 )
+from app.services import comments as comments_service
 from app.services import posts as posts_service
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
@@ -53,9 +54,12 @@ def list_posts(
 
 
 @router.get("/{post_id}", response_model=PostOut)
-def get_post(post_id: int, db: Session = Depends(get_db)) -> Post:
-    """动态详情；不存在返回 404（PRD A6）。"""
-    return posts_service.get_post(db, post_id)
+def get_post(post_id: int, db: Session = Depends(get_db)) -> PostOut:
+    """动态详情：正文 + 媒体列表 + 评论；不存在返回 404（PRD A6）。"""
+    post = posts_service.get_post(db, post_id)
+    detail = PostOut.model_validate(post)
+    detail.comments = comments_service.list_comments(db, post_id)
+    return detail
 
 
 @router.post("", response_model=PostOut, status_code=status.HTTP_201_CREATED)
