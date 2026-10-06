@@ -1,0 +1,285 @@
+/* 全局基础样式：简洁、无 UI 框架依赖 */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  color: #1f2328;
+  background: #f6f8fa;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.page {
+  background: #fff;
+  border: 1px solid #d8dee4;
+  border-radius: 8px;
+  padding: 24px;
+  margin-top: 16px;
+}
+
+/* 导航栏 */
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 16px;
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #d8dee4;
+}
+
+.navbar-brand {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2328;
+  text-decoration: none;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+
+.navbar-links a {
+  color: #57606a;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.navbar-links a.active {
+  color: #1f2328;
+  font-weight: 600;
+  background: #eaeef2;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-username {
+  font-weight: 600;
+}
+
+/* 按钮 */
+.btn {
+  display: inline-block;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  background: transparent;
+  color: inherit;
+}
+
+.btn-primary {
+  background: #1f883d;
+  border-color: #1f883d;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #1a7f37;
+}
+
+.btn-ghost {
+  border-color: #d8dee4;
+  color: #1f2328;
+  background: #fff;
+}
+
+.btn-ghost:hover {
+  background: #f3f4f6;
+}
+
+.btn-danger {
+  background: #d1242f;
+  border-color: #d1242f;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #b91c26;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 表单 */
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d8dee4;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+}
+
+.field textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+/* 卡片列表 */
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.post-card {
+  background: #fff;
+  border: 1px solid #d8dee4;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.post-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.post-card-title a {
+  color: #1f2328;
+  text-decoration: none;
+}
+
+.post-card-title a:hover {
+  text-decoration: underline;
+}
+
+.post-card-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: #57606a;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  background: #eaeef2;
+  color: #57606a;
+}
+
+/* 详情页 */
+.detail-media {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.detail-media img,
+.detail-media video {
+  max-width: 100%;
+  border-radius: 8px;
+  display: block;
+}
+
+.comment-form {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.comment-form input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #d8dee4;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comment-item {
+  border: 1px solid #eaeef2;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fafbfc;
+}
+
+.comment-meta {
+  font-size: 13px;
+  color: #57606a;
+  margin-bottom: 4px;
+}
+
+/* 管理表格 */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  background: #fff;
+}
+
+.admin-table th,
+.admin-table td {
+  border: 1px solid #d8dee4;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.admin-table th {
+  background: #f3f4f6;
+}
+
+.error-text {
+  color: #d1242f;
+}
+
+.empty-tip {
+  color: #57606a;
+  text-align: center;
+  padding: 32px 0;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
