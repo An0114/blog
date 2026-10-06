@@ -17,12 +17,12 @@ import { VerifyEmailPage } from './pages/VerifyEmailPage'
 
 function Layout() {
   return (
-    <>
+    <div className="layout">
       <NavBar />
-      <main className="container">
+      <main className="main">
         <Outlet />
       </main>
-    </>
+    </div>
   )
 }
 

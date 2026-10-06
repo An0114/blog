@@ -1,4 +1,25 @@
-/* 全局基础样式：简洁、无 UI 框架依赖 */
+/* ============================================================
+   主题：未完成的页 —— 深色文艺风格（借鉴 UI 设计图）
+   墨色暖底 + 纸感卡片 + 古铜金高亮 + 手写体点缀
+   ============================================================ */
+
+:root {
+  --ink: #171310; /* 墨色主背景 */
+  --ink-2: #1f1a13; /* 侧边栏底色 */
+  --ink-3: #2b2318; /* 深色悬浮 */
+  --line-dark: #3a3122; /* 深色分隔线 */
+  --paper: #f4ecdc; /* 纸色卡片 */
+  --paper-deep: #ecdfc6; /* 纸色加深（表头等） */
+  --gold: #c8a24b; /* 古铜金主色 */
+  --gold-deep: #a07f2e;
+  --text-dark: #33291a; /* 纸上正文 */
+  --text-muted: #8a7a5c; /* 纸上次要文字 */
+  --text-light: #d9cba8; /* 深色底正文 */
+  --text-faint: #9a8a66; /* 深色底次要文字 */
+  --danger: #b04a41;
+  --success: #4a7c3f;
+  --line-paper: #d5c49e; /* 纸上描边 */
+}
 
 * {
   box-sizing: border-box;
@@ -7,128 +28,199 @@
 body {
   margin: 0;
   font-family:
-    -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
-  color: #1f2328;
-  background: #f6f8fa;
-  line-height: 1.6;
+    'Georgia', 'Noto Serif SC', 'Songti SC', 'SimSun', 'Microsoft YaHei', serif;
+  color: var(--text-light);
+  background-color: var(--ink);
+  /* 纸纹质感：细密点阵 + 暖色微光，模拟复古纸张的颗粒 */
+  background-image:
+    radial-gradient(rgba(200, 162, 75, 0.045) 1px, transparent 1px),
+    radial-gradient(rgba(255, 240, 200, 0.04) 1px, transparent 1px);
+  background-size: 7px 7px, 11px 11px;
+  background-position: 0 0, 5px 5px;
+  line-height: 1.7;
 }
 
-.container {
-  max-width: 860px;
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 24px 16px 64px;
+  padding: 28px 32px 80px;
 }
 
-.page {
-  background: #fff;
-  border: 1px solid #d8dee4;
-  border-radius: 8px;
-  padding: 24px;
-  margin-top: 16px;
-}
-
-/* 导航栏 */
-.navbar {
+/* ---------- 侧边导航 ---------- */
+.sidebar {
+  width: 224px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
   display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 0 16px;
-  height: 56px;
-  background: #fff;
-  border-bottom: 1px solid #d8dee4;
+  flex-direction: column;
+  gap: 6px;
+  padding: 26px 16px;
+  background: linear-gradient(180deg, #221c14 0%, var(--ink-2) 100%);
+  border-right: 1px solid var(--line-dark);
 }
 
-.navbar-brand {
-  font-size: 18px;
+.sidebar-brand {
+  text-align: center;
+  font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
+  font-size: 26px;
   font-weight: 700;
-  color: #1f2328;
+  letter-spacing: 4px;
+  color: #f0e2ba;
   text-decoration: none;
+  padding: 6px 0 2px;
+  border-bottom: 1px dashed var(--line-dark);
 }
 
-.navbar-links {
+.sidebar-tagline {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-faint);
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--line-dark);
+  margin-bottom: 10px;
+}
+
+.sidebar-nav {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
+  gap: 2px;
   flex: 1;
 }
 
-.navbar-links a {
-  color: #57606a;
+.sidebar-nav a {
+  display: block;
+  padding: 9px 14px;
+  border-radius: 8px;
+  color: var(--text-faint);
   text-decoration: none;
-  padding: 4px 8px;
-  border-radius: 6px;
+  font-size: 15px;
+  letter-spacing: 2px;
 }
 
-.navbar-links a.active {
-  color: #1f2328;
+.sidebar-nav a:hover {
+  color: #e8d8a8;
+  background: var(--ink-3);
+}
+
+.sidebar-nav a.active {
+  color: #f2e6bc;
+  background: var(--ink-3);
+  box-shadow: inset 2px 0 0 var(--gold);
   font-weight: 600;
-  background: #eaeef2;
 }
 
-.navbar-user {
+.sidebar-user {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line-dark);
 }
 
-.navbar-username {
-  font-weight: 600;
-  color: #1f2328;
+.sidebar-username {
+  color: #e8d8a8;
   text-decoration: none;
+  font-weight: 600;
+  text-align: center;
 }
 
-.navbar-username:hover {
-  text-decoration: underline;
+.sidebar-username:hover {
+  color: #fff3cd;
 }
 
-/* 按钮 */
+/* ---------- 纸感卡片 ---------- */
+.page,
+.post-card {
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(140, 105, 50, 0.08) 1px, transparent 1px);
+  background-size: 9px 9px;
+  color: var(--text-dark);
+  border: 1px solid var(--line-paper);
+  border-radius: 12px;
+  padding: 26px;
+  box-shadow:
+    0 3px 14px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 248, 230, 0.35);
+}
+
+.page {
+  margin-top: 16px;
+}
+
+.page h1 {
+  font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
+  color: var(--text-dark);
+  margin-top: 0;
+  letter-spacing: 2px;
+  border-bottom: 1px dashed var(--line-paper);
+  padding-bottom: 10px;
+}
+
+/* ---------- 按钮 ---------- */
 .btn {
   display: inline-block;
   border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 6px 14px;
+  border-radius: 8px;
+  padding: 6px 16px;
   font-size: 14px;
   cursor: pointer;
   text-decoration: none;
   background: transparent;
   color: inherit;
+  letter-spacing: 1px;
 }
 
 .btn-primary {
-  background: #1f883d;
-  border-color: #1f883d;
-  color: #fff;
+  background: var(--gold);
+  border-color: var(--gold-deep);
+  color: #241c0e;
+  font-weight: 600;
 }
 
 .btn-primary:hover {
-  background: #1a7f37;
+  background: #d3ab55;
 }
 
 .btn-ghost {
-  border-color: #d8dee4;
-  color: #1f2328;
-  background: #fff;
+  border-color: var(--line-paper);
+  color: var(--text-dark);
+  background: rgba(255, 250, 235, 0.5);
 }
 
 .btn-ghost:hover {
-  background: #f3f4f6;
+  background: #fff8e6;
 }
 
 .btn-danger {
-  background: #d1242f;
-  border-color: #d1242f;
-  color: #fff;
+  background: var(--danger);
+  border-color: #933a32;
+  color: #f7ede2;
 }
 
 .btn-danger:hover {
-  background: #b91c26;
+  background: #c2554c;
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* 表单 */
+.btn-sm {
+  padding: 2px 12px;
+  font-size: 12px;
+}
+
+/* ---------- 表单 ---------- */
 .field {
   margin-bottom: 16px;
 }
@@ -137,26 +229,29 @@ body {
   display: block;
   margin-bottom: 6px;
   font-weight: 600;
+  color: var(--text-dark);
 }
 
 .field input,
 .field textarea,
-.field select {
+.field select,
+.comment-form input {
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #d8dee4;
-  border-radius: 6px;
+  padding: 9px 12px;
+  border: 1px solid var(--line-paper);
+  border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  background: #fff;
+  background: #fffdf6;
+  color: var(--text-dark);
 }
 
 .field textarea {
-  min-height: 140px;
+  min-height: 150px;
   resize: vertical;
 }
 
-/* 卡片列表 */
+/* ---------- 列表与卡片 ---------- */
 .post-list {
   display: flex;
   flex-direction: column;
@@ -170,16 +265,25 @@ body {
   margin-top: 16px;
 }
 
-.post-card {
-  background: #fff;
-  border: 1px solid #d8dee4;
-  border-radius: 8px;
-  padding: 20px;
+.filter-bar .btn {
+  border-color: var(--line-dark);
+  color: var(--text-light);
+  background: rgba(255, 250, 235, 0.04);
+}
+
+.filter-bar .btn:hover {
+  background: var(--ink-3);
+}
+
+.filter-bar .btn-primary {
+  border-color: var(--gold-deep);
+  color: #241c0e;
+  background: var(--gold);
 }
 
 .post-card-excerpt {
-  color: #57606a;
-  margin: 4px 0 8px;
+  color: var(--text-muted);
+  margin: 4px 0 10px;
 }
 
 .post-card-cover {
@@ -190,17 +294,18 @@ body {
 }
 
 .post-card-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   margin: 0 0 8px;
 }
 
 .post-card-title a {
-  color: #1f2328;
+  color: var(--text-dark);
   text-decoration: none;
 }
 
 .post-card-title a:hover {
+  color: var(--gold-deep);
   text-decoration: underline;
 }
 
@@ -208,21 +313,22 @@ body {
   display: flex;
   gap: 12px;
   align-items: center;
-  color: #57606a;
+  color: var(--text-muted);
   font-size: 13px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .badge {
   display: inline-block;
-  padding: 1px 8px;
+  padding: 1px 10px;
   border-radius: 12px;
   font-size: 12px;
-  background: #eaeef2;
-  color: #57606a;
+  background: rgba(200, 162, 75, 0.16);
+  color: var(--gold-deep);
+  border: 1px solid rgba(200, 162, 75, 0.35);
 }
 
-/* 详情页 */
+/* ---------- 详情页 ---------- */
 .detail-media {
   display: flex;
   flex-direction: column;
@@ -235,6 +341,7 @@ body {
   max-width: 100%;
   border-radius: 8px;
   display: block;
+  border: 1px solid var(--line-paper);
 }
 
 .comment-form {
@@ -245,10 +352,6 @@ body {
 
 .comment-form input {
   flex: 1;
-  padding: 8px 10px;
-  border: 1px solid #d8dee4;
-  border-radius: 6px;
-  font-size: 14px;
 }
 
 .comment-list {
@@ -258,10 +361,10 @@ body {
 }
 
 .comment-item {
-  border: 1px solid #eaeef2;
+  border: 1px solid var(--line-paper);
   border-radius: 8px;
-  padding: 12px;
-  background: #fafbfc;
+  padding: 12px 14px;
+  background: rgba(255, 250, 235, 0.45);
 }
 
 .comment-meta {
@@ -269,7 +372,7 @@ body {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #57606a;
+  color: var(--text-muted);
   margin-bottom: 4px;
 }
 
@@ -284,46 +387,65 @@ body {
   margin: 12px 0;
 }
 
-/* 管理表格 */
+/* ---------- 管理表格 ---------- */
 .admin-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 16px;
-  background: #fff;
+  background: rgba(255, 250, 235, 0.45);
 }
 
 .admin-table th,
 .admin-table td {
-  border: 1px solid #d8dee4;
+  border: 1px solid var(--line-paper);
   padding: 10px 12px;
   text-align: left;
   font-size: 14px;
+  color: var(--text-dark);
 }
 
 .admin-table th {
-  background: #f3f4f6;
+  background: var(--paper-deep);
 }
 
+/* ---------- 文字与提示 ---------- */
 .error-text {
-  color: #d1242f;
+  color: var(--danger);
 }
 
 .success-text {
-  color: #1a7f37;
+  color: var(--success);
 }
 
 .form-hint {
   margin-top: 12px;
-  color: #57606a;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
-.btn-sm {
-  padding: 2px 10px;
-  font-size: 12px;
+.empty-tip {
+  color: var(--text-faint);
+  text-align: center;
+  padding: 32px 0;
 }
 
-/* 发布页媒体 */
+/* ---------- 登录 / 注册（居中纸色弹窗） ---------- */
+.auth-form {
+  max-width: 430px;
+  margin: 9vh auto 0;
+}
+
+.auth-form h1 {
+  text-align: center;
+}
+
+.auth-form .btn-primary {
+  width: 100%;
+  padding: 10px;
+  font-size: 15px;
+}
+
+/* ---------- 发布页媒体与进度 ---------- */
 .media-pending {
   display: flex;
   flex-wrap: wrap;
@@ -343,22 +465,23 @@ body {
   height: 120px;
   object-fit: cover;
   border-radius: 6px;
-  background: #eaeef2;
+  background: #fff8e6;
+  border: 1px solid var(--line-paper);
 }
 
-/* 上传进度条（三期功能，PRD A12） */
 .upload-progress {
   position: relative;
   width: 160px;
   height: 14px;
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--line-paper);
   border-radius: 7px;
   overflow: hidden;
+  background: #fffdf6;
 }
 
 .upload-progress-bar {
   height: 100%;
-  background: #2f81f7;
+  background: var(--gold);
   transition: width 0.2s ease;
 }
 
@@ -369,19 +492,66 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  color: #1f2328;
+  color: var(--text-dark);
 }
 
-.empty-tip {
-  color: #57606a;
-  text-align: center;
-  padding: 32px 0;
+.publish-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
 }
 
+.publish-actions .btn-primary {
+  background: var(--gold);
+  color: #241c0e;
+}
+
+/* ---------- 分页 ---------- */
 .pager {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   margin-top: 20px;
+}
+
+.pager .btn {
+  border-color: var(--line-dark);
+  color: var(--text-light);
+  background: rgba(255, 250, 235, 0.04);
+}
+
+.pager .btn:hover {
+  background: var(--ink-3);
+}
+
+.pager span {
+  color: var(--text-faint);
+}
+
+/* ---------- 关于我 / 辅助 ---------- */
+.about-hero {
+  text-align: center;
+  padding: 18px 0 6px;
+}
+
+.about-hero .avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), #e6c97e);
+  color: #241c0e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.about-quote {
+  font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
+  color: var(--gold-deep);
+  font-size: 17px;
+  letter-spacing: 1px;
 }
