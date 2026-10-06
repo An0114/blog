@@ -1,20 +1,21 @@
 # PRD：个人博客网站
 
-> 文档状态：MVP 版 v1.0 ｜ 作者：博主（你） ｜ 依据：你的原始设想整理
+> 文档状态：v1.1（2026-10 新增三期功能：收藏 / 草稿箱 / 上传进度）｜ 作者：博主（你） ｜ 依据：你的原始设想整理
 
 ## 1. 背景与目标
 
-**背景**：博主（唯一内容作者）希望拥有一个自己的分享空间，用于沉淀三类内容——开发的项目、日常生活、个人日记，并能以照片和视频的形式分享；同时希望读者注册登录后能与内容互动（评论、发表看法）。
+**背景**：博主（唯一内容作者）希望拥有自己的一个分享空间，用于沉淀三类内容——开发的项目、日常生活、个人日记，并能以照片和视频的形式分享；同时希望读者注册登录后能与内容互动（评论、发表看法）。
 
 **目标（成功的标志）**：
 1. 博主可以发布"文字 + 图片/视频"的动态，并按类型（项目 / 日常 / 日记）分类展示。
-2. 访客可浏览全部动态；注册用户可登录并评论。
+2. 访客可浏览全部动态；注册用户可登录并评论（点赞 / 收藏）。
 3. 博主可在个人页面删除任意一条动态；可通过管理页面管理用户。
-4. MVP 上线后可通过域名访问（部署到自家 Linux 服务器或云平台）。
+4. 博主可先存草稿、再发布；上传大文件时能看到进度。
+5. MVP 上线后可通过域名访问（部署到自家 Linux 服务器或云平台）。
 
 **非目标（本期不做）**：
 - 多作者发布（你明确"分享人暂时只有我一个人"，多作者列为二期）。
-- 点赞、收藏、草稿箱、邮箱验证、找回密码、评论审核（均列二期）。
+- 评论审核（内容安全运营暂不做）。
 
 ## 2. 目标用户
 
@@ -35,11 +36,14 @@
 | 评论 | MVP | 登录用户可评论；评论列表按时间倒序；展示用户名与时间 |
 | 删除动态 | MVP | 博主可在个人页面删除任意动态，媒体一并下线 |
 | 管理页面 · 用户管理 | MVP | 博主可见用户列表，可禁用 / 启用 / 删除（软删除）用户 |
-| 博主删除评论 | 二期 | 删除自己动态下的不当评论 |
-| 点赞 / 收藏 | 二期 | 简单互动 |
-| 多作者 | 二期 | 开放他人注册发布 |
-| 邮箱验证 / 找回密码 | 二期 | 安全增强 |
-| 评论管理 | 二期 | 管理页增加评论管理入口 |
+| 点赞 | 二期（已实现） | 登录用户对动态点赞 / 取消点赞；详情展示点赞数 |
+| 博主删除评论 | 二期（已实现） | 博主可删除任意评论 |
+| 评论管理 | 二期（已实现） | 管理页增加评论管理入口 |
+| 邮箱验证 / 找回密码 | 二期（已实现） | 可选邮箱验证（不阻断登录）；忘记密码可重置 |
+| 收藏 | 三期 | 登录用户收藏动态；"我的收藏"列表可查看 |
+| 草稿箱 | 三期 | 博主发布前可保存/编辑草稿，草稿可带媒体，可一键发布 |
+| 附件上传进度 | 三期 | 发布页上传图片/视频时显示进度百分比 |
+| 多作者 | 二期 | 开放他人注册发布（暂未实现） |
 
 ## 4. 核心业务流程
 
@@ -52,16 +56,21 @@
 ## 5. 数据模型
 
 ```
-User    : id, username, email, password_hash, role(admin/user), status(active/disabled/deleted), created_at
-Post    : id, author_id(FK→User), title, content, category(project/daily/diary), created_at, updated_at
-Media   : id, post_id(FK→Post), type(image/video), file_path, file_size, created_at
-Comment : id, post_id(FK→Post), user_id(FK→User), content, created_at
+User          : id, username, email, password_hash, role(admin/user), status(active/disabled/deleted), email_verified(bool), created_at
+Post          : id, author_id(FK→User), title, content, category(project/daily/diary), created_at, updated_at
+Media         : id, post_id(FK→Post, 可为空), type(image/video), file_path, file_size, created_at
+Comment       : id, post_id(FK→Post), user_id(FK→User), content, created_at
+PostLike      : id, post_id(FK→Post), user_id(FK→User), created_at          -- 二期：点赞
+EmailToken    : id, user_id(FK→User), token, purpose(verify_email/reset_password), expires_at, used, created_at  -- 二期：邮件令牌
+PostFavorite  : id, post_id(FK→Post), user_id(FK→User), created_at          -- 三期：收藏
+Draft         : id, author_id(FK→User), title, content, category, media_ids(JSONB), created_at, updated_at  -- 三期：草稿
 ```
 
 **说明**：
 - 密码只存哈希（bcrypt），数据库内绝无明文。
-- 删除动态时，其关联 Media 记录与磁盘文件、Comment 记录一并删除（级联）。
+- 删除动态时，其关联 Media 记录与磁盘文件、Comment 记录、点赞/收藏记录一并删除（级联）。
 - 删除用户采用**软删除**（status 置为 deleted）：记录保留、禁止登录；其历史评论**保留**，展示时标注"用户已注销"（已定稿）。
+- 点赞与收藏是两种独立互动：点赞表达认同（公开计数），收藏是个人书签（"我的收藏"列表）。
 
 ## 6. 验收标准
 
@@ -76,3 +85,6 @@ Comment : id, post_id(FK→Post), user_id(FK→User), content, created_at
 | A7 | 评论 | 登录后可评论；评论显示用户名 + 时间；未登录无法提交 |
 | A8 | 用户管理 | 博主可查看用户列表；禁用后该用户无法登录；删除（软删除）后该用户无法登录，其历史评论保留并标注"用户已注销" |
 | A9 | 安全底线 | .env 不入 Git；上传文件经白名单校验且以 UUID 重命名存储 |
+| A10 | 收藏 | 登录用户可收藏/取消收藏；未登录收藏提示登录；"我的收藏"只展示本人收藏的动态 |
+| A11 | 草稿箱 | 仅博主可保存/编辑/删除草稿；草稿发布后生成动态并清空草稿；草稿不进入动态流 |
+| A12 | 上传进度 | 发布页上传图片/视频时显示实时进度百分比，完成后可绑定发布 |

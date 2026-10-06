@@ -1,6 +1,6 @@
 # TRD：个人博客网站
 
-> 文档状态：MVP 版 v1.0 ｜ 上游输入：PRD.md ｜ 技术栈决策人：博主（你）
+> 文档状态：v1.1（2026-10 补录二期已实现设计；新增三期：收藏 / 草稿箱 / 上传进度）｜ 上游输入：PRD.md ｜ 技术栈决策人：博主（你）
 
 ## 1. 技术栈选型与理由
 
@@ -53,20 +53,36 @@ FastAPI（app/）
 |------|------|------|------|------|
 | /api/auth/register | POST | username, email, password | 用户信息 | 无 |
 | /api/auth/login | POST | email, password | {token, user} | 无 |
-| /api/auth/me | GET | - | 当前用户 | 需登录 |
-| /api/posts | GET | category?, page, size | 动态列表（含首图/封面） | 无 |
-| /api/posts/{id} | GET | - | 动态详情 + 媒体列表 + 评论 | 无 |
+| /api/auth/me | GET | - | 当前用户（含 email_verified） | 需登录 |
+| /api/auth/verify-email/request | POST | - | {message, expires_minutes} | 需登录 |
+| /api/auth/verify-email/confirm | POST | token | 用户信息 | 无 |
+| /api/auth/forgot-password | POST | email | {message}（防枚举） | 无 |
+| /api/auth/reset-password | POST | token, new_password | {message} | 无 |
+| /api/posts | GET | category?, page, size | 动态列表（含首图/封面/点赞数） | 无 |
+| /api/posts/{id} | GET | - | 动态详情 + 媒体 + 评论 + 点赞/收藏状态 | 无（可选登录） |
 | /api/posts | POST | title, content, category, media_ids? | 动态详情 | 博主 |
 | /api/posts/{id} | DELETE | - | 204（级联删除媒体与评论） | 博主 |
+| /api/posts/{id}/like | POST | - | {liked, like_count} | 需登录 |
+| /api/posts/{id}/favorite | POST | - | {favorited, favorite_count} | 需登录 |
+| /api/me/favorites | GET | page, size | 我的收藏列表（含收藏时间） | 需登录 |
+| /api/drafts | POST | title, content, category, media_ids? | 草稿 | 博主 |
+| /api/drafts | GET | page, size | 草稿列表 | 博主 |
+| /api/drafts/{id} | GET | - | 草稿详情 | 博主 |
+| /api/drafts/{id} | PUT | title, content, category, media_ids? | 草稿 | 博主 |
+| /api/drafts/{id} | DELETE | - | 204 | 博主 |
+| /api/drafts/{id}/publish | POST | - | 动态详情 | 博主 |
 | /api/upload | POST | file, type(image/video) | {media_id, url} | 博主 |
 | /api/posts/{id}/comments | GET | - | 评论列表 | 无 |
 | /api/posts/{id}/comments | POST | content | 评论对象 | 需登录 |
-| /api/comments/{id} | DELETE | - | 204 | 评论作者 |
+| /api/comments/{id} | DELETE | - | 204 | 评论作者或博主 |
 | /api/admin/users | GET | page, size | 用户列表 | 博主 |
 | /api/admin/users/{id} | PATCH | status(active/disabled) | 用户 | 博主 |
 | /api/admin/users/{id} | DELETE | - | 204（软删除 status=deleted，评论保留） | 博主 |
+| /api/admin/comments | GET | page, size | 全站评论列表（含动态标题） | 博主 |
+| /api/admin/comments/{id} | DELETE | - | 204 | 博主 |
 
 **约定**：分页统一 `page`（从 1 起）+ `size`（默认 10）；错误统一返回 `{detail: "原因"}`；JWT 放 `Authorization: Bearer <token>`。
+**上传进度（三期）**：纯前端能力——axios `onUploadProgress` 计算实时百分比，接口无变化。
 
 ## 5. 数据库设计
 
@@ -80,6 +96,7 @@ users
   password_hash TEXT NOT NULL
   role          TEXT NOT NULL DEFAULT 'user'       -- admin / user
   status        TEXT NOT NULL DEFAULT 'active'     -- active / disabled / deleted
+  email_verified BOOLEAN NOT NULL DEFAULT FALSE    -- 二期：邮箱验证（可选，不阻断登录）
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 
 posts
@@ -93,7 +110,7 @@ posts
 
 media
   id         BIGSERIAL PRIMARY KEY
-  post_id    BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE
+  post_id    BIGINT REFERENCES posts(id) ON DELETE CASCADE   -- 可为空：先上传后绑定（刻意偏离 MVP DDL）
   type       TEXT NOT NULL                        -- image / video
   file_path  TEXT NOT NULL                        -- uploads/ 相对路径
   file_size  INTEGER NOT NULL
@@ -106,8 +123,53 @@ comments
   content    TEXT NOT NULL
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 
-索引：posts(category, created_at DESC)；comments(post_id, created_at)
+post_likes                                          -- 二期：点赞
+  id         BIGSERIAL PRIMARY KEY
+  post_id    BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE
+  user_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  UNIQUE (post_id, user_id)
+
+email_tokens                                        -- 二期：邮件令牌
+  id         BIGSERIAL PRIMARY KEY
+  user_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  token      TEXT UNIQUE NOT NULL
+  purpose    TEXT NOT NULL                         -- verify_email / reset_password
+  expires_at TIMESTAMPTZ NOT NULL
+  used       BOOLEAN NOT NULL DEFAULT FALSE
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+
+post_favorites                                      -- 三期：收藏
+  id         BIGSERIAL PRIMARY KEY
+  post_id    BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE
+  user_id    BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  UNIQUE (post_id, user_id)
+
+drafts                                              -- 三期：草稿箱（仅博主）
+  id         BIGSERIAL PRIMARY KEY
+  author_id  BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+  title      TEXT NOT NULL
+  content    TEXT NOT NULL
+  category   TEXT NOT NULL                        -- project / daily / diary
+  media_ids  JSONB NOT NULL DEFAULT '[]'          -- 已上传待绑定的媒体 id 数组
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+
+索引：
+  posts(category, created_at DESC)
+  comments(post_id, created_at)
+  post_likes UNIQUE(post_id, user_id)
+  email_tokens(user_id, purpose)（ix_email_tokens_user_purpose）；token UNIQUE
+  post_favorites UNIQUE(post_id, user_id)；post_favorites(user_id, created_at DESC)（我的收藏按时间倒序）
+  drafts(author_id, created_at DESC)
 ```
+
+**Model 变更与建表语句（SQLAlchemy 对应）**：
+- 新增模型：`PostLike`（models/like.py）、`EmailToken`（models/email_token.py）、`PostFavorite`（models/favorite.py）、`Draft`（models/draft.py），均在 `app/models/__init__.py` 导出并在 `main.py` 注册（`Base.metadata.create_all` 自动建新表）。
+- `users` 新增列 `email_verified`（Boolean, nullable=False, server_default='false'）——**create_all 不改已有表**，开发库需手动 `ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE`。
+- 收藏唯一约束：`UniqueConstraint('post_id','user_id', name='uq_post_favorites_post_user')` + 索引 `ix_post_favorites_user_created`。
+- 草稿媒体：`media_ids` 用 `sqlalchemy.JSON`（PG 落为 JSONB），存"已上传未绑定"的 media id 数组；发布时经 posts 服务校验存在且未被占用后绑定到 Post 并删除草稿。
 
 > 说明：删除用户采用**软删除**（users.status = 'deleted'）：记录保留、禁止登录；其历史评论保留展示并标注"用户已注销"，因此正常流程不会触发 comments.user_id 的物理级联删除（PRD A8 定稿）。
 
@@ -154,6 +216,9 @@ comments
 | Task 8 | 前端注册/登录 + 发布页（含上传） | 完整走通发布流程（A2-A4） |
 | Task 9 | 前端管理页面 | 用户管理可用（A8） |
 | Task 10 | 测试补全 + Nginx 部署 + 备份方案 | 公网可访问，文档齐全 |
+| Task 11 | 收藏：post_favorites 表 + 收藏 toggle + 我的收藏列表 + 详情收藏状态 + 前端收藏入口 | 按 PRD A10 通过 |
+| Task 12 | 草稿箱：drafts 表 + 草稿 CRUD + 发布 + 前端草稿入口 | 按 PRD A11 通过 |
+| Task 13 | 附件上传进度：前端 onUploadProgress 进度条 | 按 PRD A12 通过 |
 
 ## 8. 非功能性要求
 
