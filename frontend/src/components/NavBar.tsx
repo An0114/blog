@@ -25,6 +25,11 @@ export function NavBar() {
             发布
           </NavLink>
         )}
+        {isLoggedIn && (
+          <NavLink to="/favorites">
+            收藏
+          </NavLink>
+        )}
         {isAdmin && (
           <NavLink to="/admin">
             用户管理

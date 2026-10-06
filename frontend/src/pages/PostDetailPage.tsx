@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { extractErrorDetail } from '../api/client'
-import { createComment, deleteComment, deletePost, getPost, toggleLike } from '../api/posts'
+import { createComment, deleteComment, deletePost, getPost, toggleFavorite, toggleLike } from '../api/posts'
 import type { PostOut } from '../api/types'
 import { useAuth } from '../context/useAuth'
 import { categoryLabel, formatDateTime } from '../utils/format'
@@ -19,6 +19,7 @@ export function PostDetailPage() {
   const [commentText, setCommentText] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [liking, setLiking] = useState(false)
+  const [favoriting, setFavoriting] = useState(false)
 
   useEffect(() => {
     let ignore = false
@@ -95,6 +96,27 @@ export function PostDetailPage() {
     }
   }
 
+  const handleToggleFavorite = async () => {
+    if (!isLoggedIn) {
+      navigate('/login')
+      return
+    }
+    if (!post || favoriting) return
+    setFavoriting(true)
+    try {
+      const result = await toggleFavorite(post.id)
+      setPost((prev) =>
+        prev
+          ? { ...prev, favorited: result.favorited, favorite_count: result.favorite_count }
+          : prev,
+      )
+    } catch (err) {
+      setError(extractErrorDetail(err))
+    } finally {
+      setFavoriting(false)
+    }
+  }
+
   if (loading) return <p className="empty-tip">加载中…</p>
   if (error || !post) {
     return (
@@ -118,6 +140,14 @@ export function PostDetailPage() {
           disabled={liking}
         >
           {post.liked ? '♥ 已赞' : '♡ 点赞'} · {post.like_count}
+        </button>
+        <button
+          type="button"
+          className={`btn btn-sm ${post.favorited ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => void handleToggleFavorite()}
+          disabled={favoriting}
+        >
+          {post.favorited ? '★ 已收藏' : '☆ 收藏'} · {post.favorite_count}
         </button>
         {isAdmin && post.author_id === user?.id && (
           <button type="button" className="btn btn-danger btn-sm" onClick={() => void handlePostDelete()}>

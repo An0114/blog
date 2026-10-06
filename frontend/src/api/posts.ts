@@ -5,6 +5,8 @@
 import { api } from './client'
 import type {
   CommentOut,
+  FavoriteListResponse,
+  FavoriteResponse,
   LikeResponse,
   PostCategory,
   PostCreate,
@@ -47,5 +49,20 @@ export async function deleteComment(commentId: number): Promise<void> {
 /** 点赞 / 取消点赞（toggle，需登录；二期功能）。 */
 export async function toggleLike(postId: number): Promise<LikeResponse> {
   const { data } = await api.post<LikeResponse>(`/posts/${postId}/like`)
+  return data
+}
+
+/** 收藏 / 取消收藏（toggle，需登录；三期功能）。 */
+export async function toggleFavorite(postId: number): Promise<FavoriteResponse> {
+  const { data } = await api.post<FavoriteResponse>(`/posts/${postId}/favorite`)
+  return data
+}
+
+/** 我的收藏列表（需登录，分页）。 */
+export async function getMyFavorites(params: {
+  page?: number
+  size?: number
+}): Promise<FavoriteListResponse> {
+  const { data } = await api.get<FavoriteListResponse>('/me/favorites', { params })
   return data
 }

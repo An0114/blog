@@ -42,6 +42,7 @@ export interface PostListItem {
   category: PostCategory
   cover_url: string | null
   like_count: number
+  favorite_count: number
   created_at: string
   updated_at: string
 }
@@ -65,11 +66,29 @@ export interface PostOut {
   comments: CommentOut[]
   like_count: number
   liked: boolean
+  favorite_count: number
+  favorited: boolean
 }
 
 export interface LikeResponse {
   liked: boolean
   like_count: number
+}
+
+export interface FavoriteResponse {
+  favorited: boolean
+  favorite_count: number
+}
+
+export interface FavoriteItem extends PostListItem {
+  favorited_at: string
+}
+
+export interface FavoriteListResponse {
+  items: FavoriteItem[]
+  total: number
+  page: number
+  size: number
 }
 
 export interface PostCreate {
