@@ -6,6 +6,7 @@ import { createDraft, deleteDraft, getDraft, updateDraft } from '../api/drafts'
 import { uploadMedia } from '../api/media'
 import { createPost } from '../api/posts'
 import type { MediaOut, PostCategory } from '../api/types'
+import { readingMinutes } from '../utils/format'
 
 interface PendingFile {
   key: number
@@ -275,6 +276,10 @@ export function PublishPage() {
         {pendingFiles.length > 0 && (
           <span className="form-hint"> 请先完成媒体上传再发布</span>
         )}
+        <div className="publish-stats">
+          <span>已写 {content.replace(/\s+/g, '').length} 字</span>
+          <span>预估阅读 {readingMinutes(content)} 分钟</span>
+        </div>
       </form>
     </div>
   )

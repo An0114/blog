@@ -16,6 +16,12 @@ const CATEGORY_OPTIONS: { value: CategoryFilter; label: string }[] = [
   { value: 'diary', label: '日记' },
 ]
 
+const SIDE = {
+  quote: '这里只放我真正在乎的文字。',
+  positioning: ['长期写作', '私人笔记', '阅读痕迹', '生活片段'],
+  tags: ['项目', '生活', '阅读', '情绪', '效率'],
+}
+
 export function HomePage() {
   const [posts, setPosts] = useState<PostListItem[]>([])
   const [total, setTotal] = useState(0)
@@ -52,66 +58,91 @@ export function HomePage() {
   const totalPages = Math.max(1, Math.ceil(total / SIZE))
 
   return (
-    <div>
-      <div className="filter-bar">
-        {CATEGORY_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            className={`btn ${category === opt.value ? 'btn-primary' : 'btn-ghost'}`}
-            onClick={() => {
-              setLoading(true)
-              setCategory(opt.value)
-              setPage(1)
-            }}
-          >
-            {opt.label}
-          </button>
-        ))}
+    <div className="home-grid">
+      <div className="home-main">
+        <div className="filter-bar">
+          {CATEGORY_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              className={`btn ${category === opt.value ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => {
+                setLoading(true)
+                setCategory(opt.value)
+                setPage(1)
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {error && <p className="error-text">{error}</p>}
+
+        {loading ? (
+          <p className="empty-tip">加载中…</p>
+        ) : posts.length === 0 ? (
+          <p className="empty-tip">还没有动态，博主快去发布第一条吧。</p>
+        ) : (
+          <>
+            <div className="post-list">
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
+            <div className="pager">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={page <= 1}
+                onClick={() => {
+                  setLoading(true)
+                  setPage((p) => p - 1)
+                }}
+              >
+                上一页
+              </button>
+              <span>
+                {page} / {totalPages}
+              </span>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={page >= totalPages}
+                onClick={() => {
+                  setLoading(true)
+                  setPage((p) => p + 1)
+                }}
+              >
+                下一页
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
-      {error && <p className="error-text">{error}</p>}
-
-      {loading ? (
-        <p className="empty-tip">加载中…</p>
-      ) : posts.length === 0 ? (
-        <p className="empty-tip">还没有动态，博主快去发布第一条吧。</p>
-      ) : (
-        <>
-          <div className="post-list">
-            {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
+      <aside className="side-panel">
+        <div className="page side-card">
+          <p className="about-quote">{SIDE.quote}</p>
+          <p className="post-card-meta">
+            {SIDE.positioning.map((item) => (
+              <span key={item} className="badge">
+                {item}
+              </span>
             ))}
-          </div>
-          <div className="pager">
-            <button
-              type="button"
-              className="btn btn-ghost"
-              disabled={page <= 1}
-              onClick={() => {
-                setLoading(true)
-                setPage((p) => p - 1)
-              }}
-            >
-              上一页
-            </button>
-            <span>
-              {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              className="btn btn-ghost"
-              disabled={page >= totalPages}
-              onClick={() => {
-                setLoading(true)
-                setPage((p) => p + 1)
-              }}
-            >
-              下一页
-            </button>
-          </div>
-        </>
-      )}
+          </p>
+        </div>
+        <div className="page side-card">
+          <h3>标签墙</h3>
+          <p className="post-card-meta">
+            {SIDE.tags.map((tag) => (
+              <span key={tag} className="badge">
+                {tag}
+              </span>
+            ))}
+          </p>
+        </div>
+      </aside>
     </div>
   )
 }

@@ -5,7 +5,7 @@ import { extractErrorDetail } from '../api/client'
 import { createComment, deleteComment, deletePost, getPost, toggleFavorite, toggleLike } from '../api/posts'
 import type { PostOut } from '../api/types'
 import { useAuth } from '../context/useAuth'
-import { categoryLabel, formatDateTime } from '../utils/format'
+import { categoryLabel, formatDateTime, readingMinutes } from '../utils/format'
 
 export function PostDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -129,31 +129,39 @@ export function PostDetailPage() {
 
   return (
     <article className="page">
-      <h1>{post.title}</h1>
-      <div className="post-card-meta">
-        <span className="badge">{categoryLabel(post.category)}</span>
-        <span>{formatDateTime(post.created_at)}</span>
-        <button
-          type="button"
-          className={`btn btn-sm ${post.liked ? 'btn-primary' : 'btn-ghost'}`}
-          onClick={() => void handleToggleLike()}
-          disabled={liking}
-        >
-          {post.liked ? '♥ 已赞' : '♡ 点赞'} · {post.like_count}
-        </button>
-        <button
-          type="button"
-          className={`btn btn-sm ${post.favorited ? 'btn-primary' : 'btn-ghost'}`}
-          onClick={() => void handleToggleFavorite()}
-          disabled={favoriting}
-        >
-          {post.favorited ? '★ 已收藏' : '☆ 收藏'} · {post.favorite_count}
-        </button>
-        {isAdmin && post.author_id === user?.id && (
-          <button type="button" className="btn btn-danger btn-sm" onClick={() => void handlePostDelete()}>
-            删除动态
+      <div className="detail-head">
+        <Link to="/" className="btn btn-ghost btn-sm">
+          ← 返回列表
+        </Link>
+        <h1>{post.title}</h1>
+        <div className="post-card-meta">
+          <span className="badge">{categoryLabel(post.category)}</span>
+          <span>{formatDateTime(post.created_at)}</span>
+          <span>阅读时长 {readingMinutes(post.content)} 分钟</span>
+        </div>
+        <div className="post-card-meta">
+          <button
+            type="button"
+            className={`btn btn-sm ${post.liked ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => void handleToggleLike()}
+            disabled={liking}
+          >
+            {post.liked ? '♥ 已赞' : '♡ 点赞'} · {post.like_count}
           </button>
-        )}
+          <button
+            type="button"
+            className={`btn btn-sm ${post.favorited ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => void handleToggleFavorite()}
+            disabled={favoriting}
+          >
+            {post.favorited ? '★ 已收藏' : '☆ 收藏'} · {post.favorite_count}
+          </button>
+          {isAdmin && post.author_id === user?.id && (
+            <button type="button" className="btn btn-danger btn-sm" onClick={() => void handlePostDelete()}>
+              删除动态
+            </button>
+          )}
+        </div>
       </div>
       <div className="detail-content">{post.content}</div>
 

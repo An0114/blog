@@ -555,3 +555,64 @@ body {
   font-size: 17px;
   letter-spacing: 1px;
 }
+
+/* ---------- 首页双栏（列表 + 右栏个人板块） ---------- */
+.home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.side-panel {
+  position: sticky;
+  top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.side-card {
+  margin-top: 0;
+}
+
+.side-card h3 {
+  margin-top: 0;
+  color: var(--text-dark);
+  border-bottom: 1px dashed var(--line-paper);
+  padding-bottom: 6px;
+}
+
+/* ---------- 详情页头部 ---------- */
+.detail-head {
+  border-bottom: 1px dashed var(--line-paper);
+  padding-bottom: 14px;
+  margin-bottom: 10px;
+}
+
+.detail-head h1 {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: 8px 0 10px;
+}
+
+/* ---------- 发布页统计条 ---------- */
+.publish-stats {
+  display: flex;
+  gap: 18px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line-paper);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .home-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .side-panel {
+    position: static;
+  }
+}
