@@ -22,7 +22,7 @@ class PostCreate(BaseModel):
 
 
 class PostOut(BaseModel):
-    """动态详情响应体：正文 + 媒体列表 + 评论列表（TRD 第 4 节）。"""
+    """动态详情响应体：正文 + 媒体列表 + 评论列表 + 点赞信息（二期）。"""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -35,6 +35,15 @@ class PostOut(BaseModel):
     updated_at: datetime
     media: list[MediaOut] = Field(default_factory=list)
     comments: list[CommentOut] = Field(default_factory=list)
+    like_count: int = 0
+    liked: bool = False  # 当前登录用户是否已点赞；未登录恒为 False
+
+
+class LikeResponse(BaseModel):
+    """点赞 toggle 响应。"""
+
+    liked: bool
+    like_count: int
 
 
 class PostListItem(PostOut):

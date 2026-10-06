@@ -6,10 +6,11 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_admin
+from app.core.deps import get_current_admin, get_current_user, get_current_user_optional
 from app.models.post import Post
 from app.models.user import User
 from app.schemas.post import (
+    LikeResponse,
     PostCategory,
     PostCreate,
     PostListItem,
@@ -33,9 +34,10 @@ def _cover_url(post: Post) -> str | None:
     return None
 
 
-def _to_list_item(post: Post) -> PostListItem:
+def _to_list_item(post: Post, like_count: int = 0) -> PostListItem:
     item = PostListItem.model_validate(post)
     item.cover_url = _cover_url(post)
+    item.like_count = like_count
     return item
 
 
@@ -48,18 +50,39 @@ def list_posts(
 ) -> PostListResponse:
     """动态流：默认按发布时间倒序，支持按分类筛选（PRD A5）。"""
     items, total = posts_service.list_posts(db, category, page, size)
+    counts = posts_service.like_counts(db, [post.id for post in items])
     return PostListResponse(
-        items=[_to_list_item(post) for post in items], total=total, page=page, size=size
+        items=[_to_list_item(post, counts.get(post.id, 0)) for post in items],
+        total=total,
+        page=page,
+        size=size,
     )
 
 
 @router.get("/{post_id}", response_model=PostOut)
-def get_post(post_id: int, db: Session = Depends(get_db)) -> PostOut:
-    """动态详情：正文 + 媒体列表 + 评论；不存在返回 404（PRD A6）。"""
+def get_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
+) -> PostOut:
+    """动态详情：正文 + 媒体 + 评论 + 点赞数（未登录也可看，PRD A1/A6）。"""
     post = posts_service.get_post(db, post_id)
     detail = PostOut.model_validate(post)
     detail.comments = comments_service.list_comments(db, post_id)
+    detail.like_count = posts_service.get_like_count(db, post_id)
+    detail.liked = posts_service.is_liked(db, post_id, current_user.id if current_user else None)
     return detail
+
+
+@router.post("/{post_id}/like", response_model=LikeResponse)
+def toggle_like(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> LikeResponse:
+    """点赞 / 取消点赞（toggle，需登录；二期功能）。"""
+    liked, like_count = posts_service.toggle_like(db, post_id, current_user.id)
+    return LikeResponse(liked=liked, like_count=like_count)
 
 
 @router.post("", response_model=PostOut, status_code=status.HTTP_201_CREATED)

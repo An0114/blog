@@ -12,7 +12,7 @@ from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import Base, SessionLocal, engine
-from app.models import comment, media, post, user  # noqa: F401  注册全部表到 Base.metadata
+from app.models import comment, like, media, post, user  # noqa: F401  注册全部表到 Base.metadata
 from app.routers import admin, auth, comments, posts
 from app.routers import media as media_router
 from app.services.errors import ServiceError

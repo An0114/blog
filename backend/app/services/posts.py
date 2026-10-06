@@ -6,6 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
+from app.models.like import PostLike
 from app.models.media import Media
 from app.models.post import Post
 from app.models.user import User
@@ -110,10 +111,61 @@ def _remove_media_files(medias: list[Media]) -> None:
 
 
 def delete_post(db: Session, post_id: int) -> None:
-    """删除动态：磁盘媒体文件移除，媒体/评论记录由外键级联清理（PRD A6）。"""
+    """删除动态：磁盘媒体文件移除，媒体/评论/点赞记录由外键级联清理（PRD A6）。"""
     post = _get_post_with_media(db, post_id)
     if post is None:
         raise PostNotFoundError()
     _remove_media_files(post.media)
     db.delete(post)
     db.commit()
+
+
+def like_counts(db: Session, post_ids: list[int]) -> dict[int, int]:
+    """批量查询动态点赞数（列表页避免 N+1）。"""
+    if not post_ids:
+        return {}
+    rows = db.execute(
+        select(PostLike.post_id, func.count())
+        .where(PostLike.post_id.in_(post_ids))
+        .group_by(PostLike.post_id)
+    ).all()
+    return {post_id: count for post_id, count in rows}
+
+
+def get_like_count(db: Session, post_id: int) -> int:
+    """查询单条动态点赞数。"""
+    return db.scalar(
+        select(func.count()).select_from(PostLike).where(PostLike.post_id == post_id)
+    ) or 0
+
+
+def is_liked(db: Session, post_id: int, user_id: int | None) -> bool:
+    """当前用户是否已点赞（未登录恒为 False）。"""
+    if user_id is None:
+        return False
+    return (
+        db.scalar(
+            select(PostLike.id)
+            .where(PostLike.post_id == post_id, PostLike.user_id == user_id)
+            .limit(1)
+        )
+        is not None
+    )
+
+
+def toggle_like(db: Session, post_id: int, user_id: int) -> tuple[bool, int]:
+    """点赞/取消点赞（toggle）；动态不存在抛 404；返回 (是否已赞, 点赞数)。"""
+    post = db.get(Post, post_id)
+    if post is None:
+        raise PostNotFoundError()
+    like = db.scalar(
+        select(PostLike).where(PostLike.post_id == post_id, PostLike.user_id == user_id)
+    )
+    if like is None:
+        db.add(PostLike(post_id=post_id, user_id=user_id))
+        liked = True
+    else:
+        db.delete(like)
+        liked = False
+    db.commit()
+    return liked, get_like_count(db, post_id)
