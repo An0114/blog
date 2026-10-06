@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { extractErrorDetail } from '../api/client'
-import { createComment, deleteComment, getPost } from '../api/posts'
+import { createComment, deleteComment, deletePost, getPost } from '../api/posts'
 import type { PostOut } from '../api/types'
 import { useAuth } from '../context/useAuth'
 import { categoryLabel, formatDateTime } from '../utils/format'
@@ -10,7 +10,8 @@ import { categoryLabel, formatDateTime } from '../utils/format'
 export function PostDetailPage() {
   const { id } = useParams<{ id: string }>()
   const postId = Number(id)
-  const { user, isLoggedIn } = useAuth()
+  const { user, isAdmin, isLoggedIn } = useAuth()
+  const navigate = useNavigate()
 
   const [post, setPost] = useState<PostOut | null>(null)
   const [loading, setLoading] = useState(true)
@@ -64,6 +65,16 @@ export function PostDetailPage() {
     }
   }
 
+  const handlePostDelete = async () => {
+    if (!post) return
+    try {
+      await deletePost(post.id)
+      navigate('/')
+    } catch (err) {
+      setError(extractErrorDetail(err))
+    }
+  }
+
   if (loading) return <p className="empty-tip">加载中…</p>
   if (error || !post) {
     return (
@@ -80,6 +91,11 @@ export function PostDetailPage() {
       <div className="post-card-meta">
         <span className="badge">{categoryLabel(post.category)}</span>
         <span>{formatDateTime(post.created_at)}</span>
+        {isAdmin && post.author_id === user?.id && (
+          <button type="button" className="btn btn-danger btn-sm" onClick={() => void handlePostDelete()}>
+            删除动态
+          </button>
+        )}
       </div>
       <div className="detail-content">{post.content}</div>
 
