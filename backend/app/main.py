@@ -14,13 +14,14 @@ from app.core.config import settings
 from app.core.database import Base, SessionLocal, engine
 from app.models import (  # noqa: F401  注册全部表到 Base.metadata
     comment,
+    draft,
     favorite,
     like,
     media,
     post,
     user,
 )
-from app.routers import admin, auth, comments, me, posts
+from app.routers import admin, auth, comments, drafts, me, posts
 from app.routers import media as media_router
 from app.services.errors import ServiceError
 
@@ -49,6 +50,7 @@ app.include_router(media_router.router)
 app.include_router(comments.router)
 app.include_router(admin.router)
 app.include_router(me.router)
+app.include_router(drafts.router)
 
 # 上传文件静态访问（/uploads/<uuid>.<ext>）；目录不存在时先创建
 os.makedirs(settings.upload_dir, exist_ok=True)
