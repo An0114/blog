@@ -37,16 +37,17 @@ MVP 表：`users / posts / media / comments`（结构见 TRD 第 5 节）。二�
 
 ## 前端 UI 与导航权限（2026-10 新增）
 
-- 品牌：站点名「未完成的页」，标语「这里只放我真正在乎的文字」，定位「长期写作｜私人笔记｜阅读痕迹｜生活片段」；logo/标题沿用设计图，未引入图片资源。
+- 品牌：站点名「未完成的页」，标语「这里只放我真正在乎的文字」，定位「长期写作｜私人笔记｜阅读痕迹｜生活片段」；logo 为圆形徽章 `frontend/src/components/SiteLogo.tsx`（古铜金渐变 + "页"字，着陆页大号 + 侧栏品牌小号复用）；未引入图片资源。
 - 主题：深色文艺风格全量定义在 `frontend/src/index.css`（`:root` 色板 token、纸感卡片 `.page/.post-card`、侧栏 `.sidebar`）；页面级组件 pages/ 与可复用组件 components/ 约定不变。
-- 导航可见性矩阵（前端约束，后端鉴权仍兜底）：
-  - 所有人：动态 `/`、关于我 `/about`（纯前端静态页，无后端依赖）；
+- 着陆页与滚动过渡（PRD A14）：路由 `/` = 着陆页 `LandingPage`（全屏无侧栏，含复古书写装饰纯 CSS）；`/home` = 动态首页（原 `/` 内容）；向下滚动（wheel/触摸）触发着陆页淡出 + 首页 `page-enter` 从右侧滑入；浏览器后退可回着陆页。
+- 导航可见性矩阵（前端约束，后端鉴权仍兜底；"关于我"为所有用户导航的**最后一个标签**）：
+  - 所有人：动态 `/home`、关于我 `/about`（纯前端静态页，无后端依赖）；
   - 已登录：收藏 `/favorites`；
   - 博主：发布 `/publish`、草稿箱 `/drafts`、用户管理 `/admin`；
   - 未登录侧栏底部显示 登录/注册。
 - 路由守卫：`frontend/src/components/AdminRoute.tsx`（未登录跳 /login；非博主渲染"仅博主可访问该页面"）；`/account`、`/favorites` 仍用 ProtectedRoute。
+- 关于我页（PRD A15）：无标签墙；"联系方式"卡片区（平台名 + 账号 + 链接，图标为内联 SVG 不引入图标库）；文案集中在 `AboutPage.tsx` 的 `SITE` / `CONTACTS` 常量，可自行修改。
 - 工具：`frontend/src/utils/format.ts` 的 `readingMinutes(content)` 按去空白字数/300 估算阅读时长（≥1 分钟），用于详情页与发布页统计。
-- 关于我页文案集中在 `frontend/src/pages/AboutPage.tsx` 的 `SITE` 常量，可自行修改。
 
 ## 邮件发送（二期）
 
