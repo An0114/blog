@@ -3,7 +3,12 @@
  */
 
 import { api } from './client'
-import type { AdminUserListResponse, User, UserStatus } from './types'
+import type {
+  AdminCommentListResponse,
+  AdminUserListResponse,
+  User,
+  UserStatus,
+} from './types'
 
 export async function listUsers(params: { page?: number; size?: number }): Promise<AdminUserListResponse> {
   const { data } = await api.get<AdminUserListResponse>('/admin/users', { params })
@@ -17,4 +22,17 @@ export async function updateUserStatus(userId: number, status: UserStatus): Prom
 
 export async function deleteUser(userId: number): Promise<void> {
   await api.delete(`/admin/users/${userId}`)
+}
+
+/** 评论管理：全站评论列表（仅博主；二期功能）。 */
+export async function listAdminComments(params: {
+  page?: number
+  size?: number
+}): Promise<AdminCommentListResponse> {
+  const { data } = await api.get<AdminCommentListResponse>('/admin/comments', { params })
+  return data
+}
+
+export async function deleteAdminComment(commentId: number): Promise<void> {
+  await api.delete(`/admin/comments/${commentId}`)
 }

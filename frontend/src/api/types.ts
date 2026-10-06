@@ -40,6 +40,7 @@ export interface PostListItem {
   content: string
   category: PostCategory
   cover_url: string | null
+  like_count: number
   created_at: string
   updated_at: string
 }
@@ -61,6 +62,13 @@ export interface PostOut {
   updated_at: string
   media: MediaOut[]
   comments: CommentOut[]
+  like_count: number
+  liked: boolean
+}
+
+export interface LikeResponse {
+  liked: boolean
+  like_count: number
 }
 
 export interface PostCreate {
@@ -92,6 +100,23 @@ export interface LoginRequest {
 
 export interface AdminUserListResponse {
   items: User[]
+  total: number
+  page: number
+  size: number
+}
+
+export interface AdminCommentOut {
+  id: number
+  post_id: number
+  post_title: string
+  user_id: number
+  username: string
+  content: string
+  created_at: string
+}
+
+export interface AdminCommentListResponse {
+  items: AdminCommentOut[]
   total: number
   page: number
   size: number

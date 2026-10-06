@@ -5,6 +5,7 @@
 import { api } from './client'
 import type {
   CommentOut,
+  LikeResponse,
   PostCategory,
   PostCreate,
   PostListResponse,
@@ -41,4 +42,10 @@ export async function createComment(postId: number, content: string): Promise<Co
 
 export async function deleteComment(commentId: number): Promise<void> {
   await api.delete(`/comments/${commentId}`)
+}
+
+/** 点赞 / 取消点赞（toggle，需登录；二期功能）。 */
+export async function toggleLike(postId: number): Promise<LikeResponse> {
+  const { data } = await api.post<LikeResponse>(`/posts/${postId}/like`)
+  return data
 }

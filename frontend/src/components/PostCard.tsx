@@ -22,6 +22,7 @@ export function PostCard({ post }: PostCardProps) {
       <div className="post-card-meta">
         <span className="badge">{categoryLabel(post.category)}</span>
         <span>{formatDateTime(post.created_at)}</span>
+        <span>♥ {post.like_count}</span>
       </div>
       <p className="post-card-excerpt">{excerpt(post.content)}</p>
       {post.cover_url && (

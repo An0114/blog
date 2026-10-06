@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { extractErrorDetail } from '../api/client'
-import { createComment, deleteComment, deletePost, getPost } from '../api/posts'
+import { createComment, deleteComment, deletePost, getPost, toggleLike } from '../api/posts'
 import type { PostOut } from '../api/types'
 import { useAuth } from '../context/useAuth'
 import { categoryLabel, formatDateTime } from '../utils/format'
@@ -18,6 +18,7 @@ export function PostDetailPage() {
   const [error, setError] = useState('')
   const [commentText, setCommentText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [liking, setLiking] = useState(false)
 
   useEffect(() => {
     let ignore = false
@@ -75,6 +76,25 @@ export function PostDetailPage() {
     }
   }
 
+  const handleToggleLike = async () => {
+    if (!isLoggedIn) {
+      navigate('/login')
+      return
+    }
+    if (!post || liking) return
+    setLiking(true)
+    try {
+      const result = await toggleLike(post.id)
+      setPost((prev) =>
+        prev ? { ...prev, liked: result.liked, like_count: result.like_count } : prev,
+      )
+    } catch (err) {
+      setError(extractErrorDetail(err))
+    } finally {
+      setLiking(false)
+    }
+  }
+
   if (loading) return <p className="empty-tip">加载中…</p>
   if (error || !post) {
     return (
@@ -91,6 +111,14 @@ export function PostDetailPage() {
       <div className="post-card-meta">
         <span className="badge">{categoryLabel(post.category)}</span>
         <span>{formatDateTime(post.created_at)}</span>
+        <button
+          type="button"
+          className={`btn btn-sm ${post.liked ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => void handleToggleLike()}
+          disabled={liking}
+        >
+          {post.liked ? '♥ 已赞' : '♡ 点赞'} · {post.like_count}
+        </button>
         {isAdmin && post.author_id === user?.id && (
           <button type="button" className="btn btn-danger btn-sm" onClick={() => void handlePostDelete()}>
             删除动态
@@ -138,7 +166,7 @@ export function PostDetailPage() {
             <div key={comment.id} className="comment-item">
               <div className="comment-meta">
                 <strong>{comment.username}</strong> · {formatDateTime(comment.created_at)}
-                {user?.id === comment.user_id && (
+                {(user?.id === comment.user_id || isAdmin) && (
                   <button
                     type="button"
                     className="btn btn-ghost comment-delete"
