@@ -10,6 +10,7 @@ import { DraftsPage } from './pages/DraftsPage'
 import { FavoritesPage } from './pages/FavoritesPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { HomePage } from './pages/HomePage'
+import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { PostDetailPage } from './pages/PostDetailPage'
 import { PublishPage } from './pages/PublishPage'
@@ -31,8 +32,10 @@ function Layout() {
 export default function App() {
   return (
     <Routes>
+      {/* 着陆页：站点第一个页面（无侧栏，全屏） */}
+      <Route path="/" element={<LandingPage />} />
       <Route element={<Layout />}>
-        <Route index element={<HomePage />} />
+        <Route path="home" element={<HomePage />} />
         <Route path="posts/:id" element={<PostDetailPage />} />
         <Route path="about" element={<AboutPage />} />
         <Route path="login" element={<LoginPage />} />

@@ -26,7 +26,7 @@ export function LoginPage() {
     try {
       const { token, user } = await login({ email: email.trim(), password })
       saveSession(token, user)
-      navigate('/')
+      navigate('/home')
     } catch (err) {
       setError(extractErrorDetail(err))
     } finally {

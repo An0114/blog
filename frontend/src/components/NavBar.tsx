@@ -1,10 +1,11 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../context/useAuth'
+import { SiteLogo } from './SiteLogo'
 
 /**
  * 深色侧边导航栏（主题：未完成的页）。
- * 栏目可见性：动态/发布/收藏/草稿箱/用户管理 + 关于我（见单元 30 权限矩阵）。
+ * 栏目可见性：动态/发布/收藏/草稿箱/用户管理 + 关于我（位于导航最后，见单元 3）。
  */
 export function NavBar() {
   const { isLoggedIn, isAdmin, user, logout } = useAuth()
@@ -12,17 +13,18 @@ export function NavBar() {
 
   const handleLogout = () => {
     logout()
-    navigate('/')
+    navigate('/home')
   }
 
   return (
     <aside className="sidebar">
-      <Link to="/" className="sidebar-brand">
-        未完成的页
+      <Link to="/home" className="sidebar-brand">
+        <SiteLogo size={40} />
+        <span>未完成的页</span>
       </Link>
       <p className="sidebar-tagline">这里只放我真正在乎的文字</p>
       <nav className="sidebar-nav">
-        <NavLink to="/" end>
+        <NavLink to="/home" end>
           动态
         </NavLink>
         <NavLink to="/about">

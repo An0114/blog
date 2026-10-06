@@ -69,11 +69,15 @@ body {
 }
 
 .sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   text-align: center;
   font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
-  font-size: 26px;
+  font-size: 21px;
   font-weight: 700;
-  letter-spacing: 4px;
+  letter-spacing: 3px;
   color: #f0e2ba;
   text-decoration: none;
   padding: 6px 0 2px;
@@ -615,4 +619,158 @@ body {
   .side-panel {
     position: static;
   }
+}
+
+/* ---------- 网站圆形 Logo（PRD A14） ---------- */
+.site-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), #e6c97e);
+  color: #241c0e;
+  font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 2px rgba(255, 248, 230, 0.55);
+}
+
+/* ---------- 着陆页（PRD A14） ---------- */
+.landing {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(rgba(200, 162, 75, 0.06) 1px, transparent 1px),
+    radial-gradient(rgba(255, 240, 200, 0.05) 1px, transparent 1px);
+  background-size: 8px 8px, 12px 12px;
+  background-position: 0 0, 5px 5px;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.landing-leaving {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
+.landing-center {
+  text-align: center;
+  max-width: 640px;
+  padding: 0 24px;
+}
+
+.landing-title {
+  font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
+  color: #f0e2ba;
+  font-size: 44px;
+  letter-spacing: 10px;
+  margin: 22px 0 12px;
+}
+
+.landing-slogan {
+  color: var(--text-light);
+  font-size: 17px;
+  letter-spacing: 3px;
+  margin: 0 0 20px;
+}
+
+.landing-positioning {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 28px;
+}
+
+.landing-positioning .badge {
+  background: rgba(200, 162, 75, 0.14);
+  color: #d8bc6a;
+  border-color: rgba(200, 162, 75, 0.4);
+}
+
+.landing-hint {
+  color: var(--text-faint);
+  font-size: 13px;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.landing-scroll {
+  color: var(--text-faint);
+  font-size: 13px;
+  margin: 26px 0 0;
+  animation: scroll-hint 2s ease-in-out infinite;
+}
+
+@keyframes scroll-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+}
+
+/* 复古书写装饰（纯 CSS，不引入图片资源） */
+.landing-decor {
+  position: absolute;
+  color: rgba(230, 216, 168, 0.28);
+  font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
+  pointer-events: none;
+  user-select: none;
+}
+
+.landing-note {
+  top: 8%;
+  left: 6%;
+  font-size: 16px;
+  line-height: 1.8;
+  padding: 14px 18px;
+  background: rgba(200, 162, 75, 0.08);
+  border-left: 2px solid rgba(200, 162, 75, 0.5);
+  transform: rotate(-4deg);
+}
+
+.landing-calendar {
+  top: 10%;
+  right: 8%;
+  font-size: 60px;
+  font-family: Georgia, serif;
+  letter-spacing: 2px;
+  opacity: 0.5;
+}
+
+.landing-notebook {
+  bottom: 6%;
+  right: 7%;
+  font-size: 15px;
+  padding: 16px 20px;
+  border: 1px solid rgba(230, 216, 168, 0.3);
+  background: rgba(255, 248, 230, 0.05);
+  border-radius: 6px;
+  transform: rotate(3deg);
+  writing-mode: vertical-rl;
+}
+
+/* ---------- 页面入场动画（着陆页滚动过渡） ---------- */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateX(80px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 0.7s ease-out both;
 }

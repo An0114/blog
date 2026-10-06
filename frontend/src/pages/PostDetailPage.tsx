@@ -71,7 +71,7 @@ export function PostDetailPage() {
     if (!post) return
     try {
       await deletePost(post.id)
-      navigate('/')
+      navigate('/home')
     } catch (err) {
       setError(extractErrorDetail(err))
     }
@@ -122,7 +122,7 @@ export function PostDetailPage() {
     return (
       <div className="page">
         <p className="error-text">{error || '动态不存在'}</p>
-        <Link to="/">返回首页</Link>
+        <Link to="/home">返回首页</Link>
       </div>
     )
   }
@@ -130,7 +130,7 @@ export function PostDetailPage() {
   return (
     <article className="page">
       <div className="detail-head">
-        <Link to="/" className="btn btn-ghost btn-sm">
+        <Link to="/home" className="btn btn-ghost btn-sm">
           ← 返回列表
         </Link>
         <h1>{post.title}</h1>

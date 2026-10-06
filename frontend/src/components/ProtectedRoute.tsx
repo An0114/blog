@@ -22,7 +22,7 @@ export function ProtectedRoute({ children, adminOnly = false }: ProtectedRoutePr
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
   if (adminOnly && !isAdmin) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/login" replace />
   }
   return <>{children}</>
 }

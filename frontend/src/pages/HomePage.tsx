@@ -58,7 +58,7 @@ export function HomePage() {
   const totalPages = Math.max(1, Math.ceil(total / SIZE))
 
   return (
-    <div className="home-grid">
+    <div className="home-grid page-enter">
       <div className="home-main">
         <div className="filter-bar">
           {CATEGORY_OPTIONS.map((opt) => (
