@@ -1,17 +1,20 @@
 """FastAPI 应用入口。"""
 
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import Base, SessionLocal, engine
-from app.models import post, user  # noqa: F401  注册全部表到 Base.metadata
+from app.models import media, post, user  # noqa: F401  注册全部表到 Base.metadata
 from app.routers import auth, posts
+from app.routers import media as media_router
 from app.services.errors import ServiceError
 
 
@@ -35,6 +38,11 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(posts.router)
+app.include_router(media_router.router)
+
+# 上传文件静态访问（/uploads/<uuid>.<ext>）；目录不存在时先创建
+os.makedirs(settings.upload_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 
 
 @app.exception_handler(ServiceError)
