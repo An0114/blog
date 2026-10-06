@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # CORS 白名单（逗号分隔，PRD A9：只允许配置的域名）
     cors_origins: str = "http://localhost:5173"
 
+    # 上传文件存储目录（相对 backend 运行目录；不入 Git）
+    upload_dir: str = "uploads"
+
     @property
     def cors_origin_list(self) -> list[str]:
         """把逗号分隔的 CORS 配置解析成列表。"""
