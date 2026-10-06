@@ -27,9 +27,6 @@ export function NavBar() {
         <NavLink to="/home" end>
           动态
         </NavLink>
-        <NavLink to="/about">
-          关于我
-        </NavLink>
         {isLoggedIn && (
           <NavLink to="/favorites">
             收藏
@@ -50,6 +47,10 @@ export function NavBar() {
             用户管理
           </NavLink>
         )}
+        {/* 关于我：所有用户导航的最后一个标签（PRD A15） */}
+        <NavLink to="/about">
+          关于我
+        </NavLink>
       </nav>
       <div className="sidebar-user">
         {isLoggedIn ? (

@@ -539,25 +539,51 @@ body {
   padding: 18px 0 6px;
 }
 
-.about-hero .avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold), #e6c97e);
-  color: #241c0e;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-}
-
 .about-quote {
   font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
   color: var(--gold-deep);
   font-size: 17px;
   letter-spacing: 1px;
+}
+
+/* ---------- 关于我 · 联系方式（PRD A15） ---------- */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-paper);
+  border-radius: 10px;
+  background: rgba(255, 250, 235, 0.5);
+  color: var(--text-dark);
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+a.contact-card:hover {
+  background: #fff8e6;
+}
+
+.contact-icon {
+  display: inline-flex;
+  color: var(--gold-deep);
+}
+
+.contact-name {
+  font-weight: 600;
+}
+
+.contact-account {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-left: auto;
 }
 
 /* ---------- 首页双栏（列表 + 右栏个人板块） ---------- */
