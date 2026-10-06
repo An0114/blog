@@ -14,6 +14,7 @@ export interface User {
   email: string
   role: UserRole
   status: UserStatus
+  email_verified: boolean
   created_at: string
 }
 

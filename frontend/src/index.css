@@ -72,6 +72,12 @@ body {
 
 .navbar-username {
   font-weight: 600;
+  color: #1f2328;
+  text-decoration: none;
+}
+
+.navbar-username:hover {
+  text-decoration: underline;
 }
 
 /* 按钮 */

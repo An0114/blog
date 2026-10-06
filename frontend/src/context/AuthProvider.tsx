@@ -30,6 +30,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
+  // 更新当前用户信息（如邮箱验证后刷新 email_verified）
+  const updateUser = useCallback((nextUser: User) => {
+    storeSession(getStoredToken() ?? '', nextUser)
+    setUser(nextUser)
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -38,8 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin: user?.role === 'admin',
       login,
       logout,
+      updateUser,
     }),
-    [user, token, login, logout],
+    [user, token, login, logout, updateUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

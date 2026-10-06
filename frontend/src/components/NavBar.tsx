@@ -34,7 +34,9 @@ export function NavBar() {
       <div className="navbar-user">
         {isLoggedIn ? (
           <>
-            <span className="navbar-username">{user?.username}</span>
+            <Link to="/account" className="navbar-username">
+              {user?.username}
+            </Link>
             <button type="button" className="btn btn-ghost" onClick={handleLogout}>
               退出
             </button>
