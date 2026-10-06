@@ -25,14 +25,17 @@ export function NavBar() {
         <NavLink to="/" end>
           动态
         </NavLink>
-        {isLoggedIn && (
-          <NavLink to="/publish">
-            发布
-          </NavLink>
-        )}
+        <NavLink to="/about">
+          关于我
+        </NavLink>
         {isLoggedIn && (
           <NavLink to="/favorites">
             收藏
+          </NavLink>
+        )}
+        {isAdmin && (
+          <NavLink to="/publish">
+            发布
           </NavLink>
         )}
         {isAdmin && (

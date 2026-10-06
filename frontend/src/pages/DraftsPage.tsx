@@ -4,13 +4,11 @@ import { useNavigate } from 'react-router-dom'
 import { extractErrorDetail } from '../api/client'
 import { deleteDraft, listDrafts, publishDraft } from '../api/drafts'
 import type { DraftOut } from '../api/types'
-import { useAuth } from '../context/useAuth'
 import { categoryLabel, formatDateTime } from '../utils/format'
 
 const SIZE = 10
 
 export function DraftsPage() {
-  const { isAdmin } = useAuth()
   const navigate = useNavigate()
   const [items, setItems] = useState<DraftOut[]>([])
   const [total, setTotal] = useState(0)
@@ -39,14 +37,6 @@ export function DraftsPage() {
       ignore = true
     }
   }, [page])
-
-  if (!isAdmin) {
-    return (
-      <div className="page">
-        <p className="error-text">仅博主可访问草稿箱</p>
-      </div>
-    )
-  }
 
   const handlePublish = async (draft: DraftOut) => {
     if (busyId !== null) return

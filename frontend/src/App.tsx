@@ -1,7 +1,9 @@
 import { Outlet, Route, Routes } from 'react-router-dom'
 
+import { AdminRoute } from './components/AdminRoute'
 import { NavBar } from './components/NavBar'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { AboutPage } from './pages/AboutPage'
 import { AccountPage } from './pages/AccountPage'
 import { AdminPage } from './pages/AdminPage'
 import { DraftsPage } from './pages/DraftsPage'
@@ -32,6 +34,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="posts/:id" element={<PostDetailPage />} />
+        <Route path="about" element={<AboutPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
@@ -56,25 +59,25 @@ export default function App() {
         <Route
           path="drafts"
           element={
-            <ProtectedRoute>
+            <AdminRoute>
               <DraftsPage />
-            </ProtectedRoute>
+            </AdminRoute>
           }
         />
         <Route
           path="publish"
           element={
-            <ProtectedRoute>
+            <AdminRoute>
               <PublishPage />
-            </ProtectedRoute>
+            </AdminRoute>
           }
         />
         <Route
           path="admin"
           element={
-            <ProtectedRoute adminOnly>
+            <AdminRoute>
               <AdminPage />
-            </ProtectedRoute>
+            </AdminRoute>
           }
         />
       </Route>
