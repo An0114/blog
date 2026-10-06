@@ -8,9 +8,14 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.deps import get_current_admin
 from app.models.user import User
-from app.schemas.admin import UserListResponse, UserStatusUpdate
+from app.schemas.admin import (
+    AdminCommentListResponse,
+    UserListResponse,
+    UserStatusUpdate,
+)
 from app.schemas.auth import UserOut
 from app.services import admin as admin_service
+from app.services import comments as comments_service
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -49,3 +54,25 @@ def delete_user(
 ) -> None:
     """软删除用户（status=deleted，记录保留、禁止登录、评论保留，PRD A8）。"""
     admin_service.delete_user(db, admin, user_id)
+
+
+@router.get("/comments", response_model=AdminCommentListResponse)
+def list_comments(
+    page: PageParam = 1,
+    size: SizeParam = 10,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
+) -> AdminCommentListResponse:
+    """评论管理：全站评论列表（分页，时间倒序；二期功能）。"""
+    items, total = comments_service.list_all_comments(db, page, size)
+    return AdminCommentListResponse(items=items, total=total, page=page, size=size)
+
+
+@router.delete("/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_comment(
+    comment_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
+) -> None:
+    """评论管理：博主删除任意评论（二期功能）。"""
+    comments_service.delete_comment(db, comment_id, admin)

@@ -1,10 +1,12 @@
-"""评论业务逻辑：列表（倒序）、新增（需登录）、删除（作者本人）。"""
+"""评论业务逻辑：列表（倒序）、新增（需登录）、删除（作者本人或博主）、管理端全站列表。"""
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.comment import Comment
+from app.models.post import Post
 from app.models.user import User
+from app.schemas.admin import AdminCommentOut
 from app.schemas.comment import CommentOut
 from app.services.errors import PermissionDeniedError, ServiceError
 from app.services.posts import get_post
@@ -54,12 +56,38 @@ def create_comment(db: Session, post_id: int, user: User, content: str) -> Comme
     return _to_out(comment, user)
 
 
-def delete_comment(db: Session, comment_id: int, user: User) -> None:
-    """删除自己的评论；他人评论拒绝（TRD：鉴权=评论作者）。"""
+def delete_comment(db: Session, comment_id: int, operator: User) -> None:
+    """删除评论：评论作者本人，或博主删除任意评论（二期：博主删除评论）。"""
     comment = db.get(Comment, comment_id)
     if comment is None:
         raise CommentNotFoundError()
-    if comment.user_id != user.id:
+    if comment.user_id != operator.id and operator.role != "admin":
         raise PermissionDeniedError("只能删除自己的评论")
     db.delete(comment)
     db.commit()
+
+
+def list_all_comments(db: Session, page: int, size: int) -> tuple[list[AdminCommentOut], int]:
+    """管理端全站评论列表（分页，时间倒序；二期：评论管理）。"""
+    total = db.scalar(select(func.count()).select_from(Comment)) or 0
+    rows = db.execute(
+        select(Comment, User, Post.title)
+        .join(User, Comment.user_id == User.id)
+        .join(Post, Comment.post_id == Post.id)
+        .order_by(Comment.created_at.desc(), Comment.id.desc())
+        .offset((page - 1) * size)
+        .limit(size)
+    ).all()
+    items = [
+        AdminCommentOut(
+            id=comment.id,
+            post_id=comment.post_id,
+            post_title=post_title,
+            user_id=comment.user_id,
+            username=DELETED_USER_DISPLAY if user.status == "deleted" else user.username,
+            content=comment.content,
+            created_at=comment.created_at,
+        )
+        for comment, user, post_title in rows
+    ]
+    return items, total
