@@ -6,11 +6,15 @@
 """
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Text, func, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.media import Media
 
 
 class Post(Base):
@@ -29,6 +33,11 @@ class Post(Base):
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+    media: Mapped[list[Media]] = relationship(
+        back_populates="post",
+        cascade="all, delete-orphan",
+        passive_deletes=True,  # 物理删除交由数据库外键级联（PRD A6）
     )
 
     def __repr__(self) -> str:

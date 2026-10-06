@@ -33,9 +33,4 @@ async def upload(
         content_type=file.content_type or "",
         data=data,
     )
-    return MediaOut(
-        id=media.id,
-        type=media.type,
-        url=f"/uploads/{media.file_path}",
-        file_size=media.file_size,
-    )
+    return MediaOut.model_validate(media)

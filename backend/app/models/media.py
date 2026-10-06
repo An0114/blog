@@ -6,11 +6,15 @@ TRD 的 /api/upload 独立于发布（先上传、后绑定到动态），上传
 """
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.post import Post
 
 
 class Media(Base):
@@ -26,6 +30,7 @@ class Media(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+    post: Mapped[Post | None] = relationship(back_populates="media")
 
     def __repr__(self) -> str:
         return f"<Media id={self.id} type={self.type} path={self.file_path!r}>"

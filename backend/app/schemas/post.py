@@ -5,6 +5,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.media import MediaOut
+
 # 动态分类（TRD 第 5 节）：project / daily / diary
 PostCategory = Literal["project", "daily", "diary"]
 
@@ -15,10 +17,11 @@ class PostCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     content: str = Field(min_length=1)
     category: PostCategory
+    media_ids: list[int] = Field(default_factory=list, max_length=20)  # 已上传媒体的 ID
 
 
 class PostOut(BaseModel):
-    """动态响应体。"""
+    """动态详情响应体：正文 + 媒体列表。"""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -29,12 +32,19 @@ class PostOut(BaseModel):
     category: str
     created_at: datetime
     updated_at: datetime
+    media: list[MediaOut] = Field(default_factory=list)
+
+
+class PostListItem(PostOut):
+    """动态列表条目：在详情基础上附加封面图 URL（取第一条图片媒体）。"""
+
+    cover_url: str | None = None
 
 
 class PostListResponse(BaseModel):
     """动态列表响应：分页元数据 + 条目。"""
 
-    items: list[PostOut]
+    items: list[PostListItem]
     total: int
     page: int
     size: int
