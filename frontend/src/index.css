@@ -158,11 +158,29 @@ body {
   margin-top: 16px;
 }
 
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
 .post-card {
   background: #fff;
   border: 1px solid #d8dee4;
   border-radius: 8px;
   padding: 20px;
+}
+
+.post-card-excerpt {
+  color: #57606a;
+  margin: 4px 0 8px;
+}
+
+.post-card-cover {
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
 .post-card-title {
@@ -241,9 +259,23 @@ body {
 }
 
 .comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   color: #57606a;
   margin-bottom: 4px;
+}
+
+.comment-delete {
+  margin-left: auto;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.detail-content {
+  white-space: pre-line;
+  margin: 12px 0;
 }
 
 /* 管理表格 */
