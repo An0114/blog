@@ -21,7 +21,7 @@ SessionLocal = sessionmaker(
 )
 
 
-def get_db() -> Generator[Session, None, None]:
+def get_db() -> Generator[Session]:
     """FastAPI 依赖：为每个请求提供独立数据库会话，请求结束自动关闭。"""
     db = SessionLocal()
     try:

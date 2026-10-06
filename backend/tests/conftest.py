@@ -52,7 +52,7 @@ def test_engine() -> Generator:
 
 
 @pytest.fixture()
-def db_session(test_engine) -> Generator[Session, None, None]:
+def db_session(test_engine) -> Generator[Session]:
     """独立会话，供用例直接查库断言（如校验密码哈希）。"""
     factory = sessionmaker(
         bind=test_engine, autocommit=False, autoflush=False, expire_on_commit=False
@@ -70,13 +70,13 @@ def _clean_users(test_engine) -> None:
 
 
 @pytest.fixture()
-def client(test_engine) -> Generator[TestClient, None, None]:
+def client(test_engine) -> Generator[TestClient]:
     """TestClient：将 get_db 依赖替换为测试引擎会话。"""
     factory = sessionmaker(
         bind=test_engine, autocommit=False, autoflush=False, expire_on_commit=False
     )
 
-    def override_get_db() -> Generator[Session, None, None]:
+    def override_get_db() -> Generator[Session]:
         db = factory()
         try:
             yield db

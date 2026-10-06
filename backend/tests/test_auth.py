@@ -1,6 +1,6 @@
 """认证接口测试：覆盖 PRD A2 / A3 验收点。"""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from jose import jwt
 from sqlalchemy import select
@@ -122,8 +122,8 @@ class TestLogin:
         # token 可解析且 sub 为用户 id、有效期约 7 天
         payload = jwt.decode(data["token"], settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
         assert payload["sub"] == str(user.id)
-        exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
-        assert exp - datetime.now(timezone.utc) > timedelta(days=6)
+        exp = datetime.fromtimestamp(payload["exp"], tz=UTC)
+        assert exp - datetime.now(UTC) > timedelta(days=6)
 
     def test_wrong_password_401(self, client, db_session):
         _create_user(db_session)
@@ -179,7 +179,7 @@ class TestMe:
 
     def test_me_with_expired_token_401(self, client, db_session):
         user = _create_user(db_session)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expired_payload = {
             "sub": str(user.id),
             "iat": now - timedelta(minutes=10),

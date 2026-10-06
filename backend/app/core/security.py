@@ -4,7 +4,7 @@
 - 会话：python-jose 签发 HS256 JWT，有效期由配置控制（PRD A3：7 天）。
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt as _bcrypt
 from jose import JWTError, jwt
@@ -50,7 +50,7 @@ def verify_password(plain_password: str, password_hash: str) -> bool:
 
 def create_access_token(user_id: int) -> str:
     """签发 JWT，sub 存用户 ID，过期时间按配置（默认 7 天）。"""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": str(user_id),
         "iat": now,
