@@ -1,6 +1,6 @@
 # TRD：个人博客网站
 
-> 文档状态：v1.3（2026-10 补录二期已实现设计；新增三期：收藏 / 草稿箱 / 上传进度；UI 主题与导航权限；着陆页与滚动过渡 / 网站 Logo / 关于我联系方式）｜ 上游输入：PRD.md ｜ 技术栈决策人：博主（你）
+> 文档状态：v1.4（2026-10 补录二期已实现设计；新增三期：收藏 / 草稿箱 / 上传进度；UI 主题与导航权限；着陆页与滚动过渡 / 网站 Logo / 关于我联系方式；站点初始化与博主账户 /admin/init）｜ 上游输入：PRD.md ｜ 技术栈决策人：博主（你）
 
 ## 1. 技术栈选型与理由
 
@@ -80,10 +80,19 @@ FastAPI（app/）
 | /api/admin/users/{id} | DELETE | - | 204（软删除 status=deleted，评论保留） | 博主 |
 | /api/admin/comments | GET | page, size | 全站评论列表（含动态标题） | 博主 |
 | /api/admin/comments/{id} | DELETE | - | 204 | 博主 |
+| /api/admin/init/status | GET | - | {initialized: bool, email_verify_enabled?: bool, has_site_icon?: bool} | 无 |
+| /api/admin/init | POST | username, email, password, site_icon_base64?, email_verify_enabled, smtp_host?, smtp_port?, smtp_user?, smtp_password? | 201 {message, admin} | 无（仅未初始化时可用） |
 
 **约定**：分页统一 `page`（从 1 起）+ `size`（默认 10）；错误统一返回 `{detail: "原因"}`；JWT 放 `Authorization: Bearer <token>`。
 **上传进度（三期）**：纯前端能力——axios `onUploadProgress` 计算实时百分比，接口无变化。
 **UI 主题与导航权限（三期 UI，PRD A13-A15）**：无新增表 / 字段、无新增 API；"关于我"为纯前端静态页（含联系方式，同为静态内容）；着陆页 / 滚动过渡 / 网站 Logo 均为纯前端实现；导航可见性与路由守卫均为前端约束（后端已有鉴权兜底）。
+**站点初始化（PRD A16）**：新增 `site_configs` 单行表（见第 5 节）；`GET /api/admin/init/status` 无鉴权、动态判定 initialized；`POST /api/admin/init` 仅未初始化时可调用；**现有接口受影响的仅两处**——`POST /api/auth/register` 与 `POST /api/auth/login` 在 `site_configs.email_verify_enabled=true` 时要求邮箱验证（注册发验证邮件、未验证拒绝登录），开关默认关闭时行为与现状完全一致（既有的"可选验证、不阻断登录"不受影响）。
+**初始化错误约定**：
+- `409 {detail: "站点已初始化"}`：已存在 admin 用户时再调用 init；
+- `409 {detail: "用户名已存在" / "邮箱已存在"}`：与 admin 账户注册查重一致；
+- `400 {detail: "密码至少 6 位" / "邮箱格式不正确" / "网站图标仅支持 png/ico/jpg/webp，且不超过 1MB"}`；
+- `400 {detail: "开启邮箱验证必须填写 SMTP 配置（host/port/user/password）"}`；
+- `422`：Pydantic 参数校验默认行为。
 
 ## 5. 数据库设计
 
@@ -157,6 +166,17 @@ drafts                                              -- 三期：草稿箱（仅�
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 
+site_configs                                        -- 部署初始化：站点配置（单行，id 固定 1）
+  id                  INTEGER PRIMARY KEY          -- CHECK (id = 1)
+  is_initialized      BOOLEAN NOT NULL DEFAULT FALSE
+  site_icon_url       TEXT                          -- uploads/site_icon/ 相对路径，可为空
+  email_verify_enabled BOOLEAN NOT NULL DEFAULT FALSE
+  smtp_host           TEXT
+  smtp_port           INTEGER
+  smtp_user           TEXT
+  smtp_password       TEXT
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+
 索引：
   posts(category, created_at DESC)
   comments(post_id, created_at)
@@ -164,13 +184,30 @@ drafts                                              -- 三期：草稿箱（仅�
   email_tokens(user_id, purpose)（ix_email_tokens_user_purpose）；token UNIQUE
   post_favorites UNIQUE(post_id, user_id)；post_favorites(user_id, created_at DESC)（我的收藏按时间倒序）
   drafts(author_id, created_at DESC)
+  site_configs 主键 id（单行表，无额外索引）
 ```
 
 **Model 变更与建表语句（SQLAlchemy 对应）**：
-- 新增模型：`PostLike`（models/like.py）、`EmailToken`（models/email_token.py）、`PostFavorite`（models/favorite.py）、`Draft`（models/draft.py），均在 `app/models/__init__.py` 导出并在 `main.py` 注册（`Base.metadata.create_all` 自动建新表）。
+- 新增模型：`PostLike`（models/like.py）、`EmailToken`（models/email_token.py）、`PostFavorite`（models/favorite.py）、`Draft`（models/draft.py）、`SiteConfig`（models/site_config.py），均在 `app/models/__init__.py` 导出并在 `main.py` 注册（`Base.metadata.create_all` 自动建新表）。
 - `users` 新增列 `email_verified`（Boolean, nullable=False, server_default='false'）——**create_all 不改已有表**，开发库需手动 `ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE`。
 - 收藏唯一约束：`UniqueConstraint('post_id','user_id', name='uq_post_favorites_post_user')` + 索引 `ix_post_favorites_user_created`。
 - 草稿媒体：`media_ids` 用 `sqlalchemy.JSON`（PG 落为 JSONB），存"已上传未绑定"的 media id 数组；发布时经 posts 服务校验存在且未被占用后绑定到 Post 并删除草稿。
+- `SiteConfig`（models/site_config.py）：单行表，`id = Column(Integer, primary_key=True, default=1)`；`is_initialized` / `email_verify_enabled` 为 Boolean(default=False)；`site_icon_url` / `smtp_host` / `smtp_user` / `smtp_password` 为 String(255, nullable=True)；`smtp_port` 为 Integer(nullable=True)；`updated_at` 带 `onupdate=func.now()`。
+- `SiteConfig` 建表语句：
+  ```sql
+  CREATE TABLE site_configs (
+      id                  INTEGER PRIMARY KEY CHECK (id = 1),
+      is_initialized      BOOLEAN NOT NULL DEFAULT FALSE,
+      site_icon_url       VARCHAR(255),
+      email_verify_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+      smtp_host           VARCHAR(255),
+      smtp_port           INTEGER,
+      smtp_user           VARCHAR(255),
+      smtp_password       VARCHAR(255),
+      updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
+  ```
+- **初始化判定口径**：`GET /api/admin/init/status` 的 `initialized` = user 表存在 `role='admin'` 记录；无 → site_configs 无行则创建一行并保持 `is_initialized=false`，有 → 同步置 `is_initialized=true`（标志由 user 表推导，site_configs 仅作缓存，二者以 user 表为准）。
 
 > 说明：删除用户采用**软删除**（users.status = 'deleted'）：记录保留、禁止登录；其历史评论保留展示并标注"用户已注销"，因此正常流程不会触发 comments.user_id 的物理级联删除（PRD A8 定稿）。
 
@@ -222,6 +259,7 @@ drafts                                              -- 三期：草稿箱（仅�
 | Task 13 | 附件上传进度：前端 onUploadProgress 进度条 | 按 PRD A12 通过 |
 | Task 14 | UI 主题与导航权限：深色文艺主题（品牌"未完成的页"）、侧边导航布局、普通用户仅见 动态/收藏/关于我、博主见全部、"关于我"页 | 按 PRD A13 通过 |
 | Task 15 | 着陆页与滚动过渡 + 网站 Logo + 关于我联系方式：`/` 着陆页首屏、向下滚动淡入+右侧滑入过渡到 `/home` 动态首页、圆形徽章 logo（着陆页与侧栏复用）、"关于我"导航移至最后、"关于我"页去标签墙改多种联系方式 | 按 PRD A14/A15 通过 |
+| Task 16 | 站点初始化与博主账户：site_configs 表 + `/api/admin/init`(status/init) + 初始化页 `/admin/init`（博主账户注册、网站图标上传、邮箱验证开关与 SMTP 配置）+ 注册/登录受 email_verify_enabled 影响 | 按 PRD A16 通过 |
 
 ## 9. 前端 UI 与导航权限设计（2026-10，PRD A13-A15）
 
@@ -252,6 +290,13 @@ drafts                                              -- 三期：草稿箱（仅�
 - 登录入口（用户名 → 账户设置 / 退出）对已登录用户保留。
 
 **关于我页（PRD A15）**：去除标签墙；改为"联系方式"卡片区——多种联系方式（平台名 + 账号 + 可点击链接，如邮箱 / B站 / 微博 / 微信 / QQ），图标用内联 SVG，不引入图标库；文案集中在 `AboutPage.tsx` 的 `SITE` 常量。
+
+**站点初始化页 `/admin/init`（PRD A16，Task 16）**：
+- 路由：独立于 Layout（全屏居中纸卡，与登录页同主题，无侧栏）；进入后先请求 `GET /api/admin/init/status`。
+- 已初始化（`initialized=true`）→ 渲染"站点已初始化"提示 + 跳登录；未初始化 → 渲染初始化表单。
+- 表单字段：① 博主账户（用户名 / 邮箱 / 密码 / 确认密码）；② 网站图标（文件选择 + 实时预览，png/ico/jpg/webp ≤1MB，转 base64 提交）；③ 邮箱验证开关（默认关闭，关闭时不显示 SMTP 区；打开时展开 SMTP 配置 host/port/user/password）。
+- 提交 `POST /api/admin/init` → 成功跳 `/login`（管理员账户可直接登录，`email_verified=true` 免验证）。
+- 成功后该页不再开放；前端文件 `frontend/src/pages/InitPage.tsx`，接口封装 `frontend/src/api/init.ts`。
 
 ## 8. 非功能性要求
 
