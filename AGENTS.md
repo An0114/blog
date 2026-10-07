@@ -35,6 +35,13 @@ MVP 表：`users / posts / media / comments`（结构见 TRD 第 5 节）。二�
 
 **注意**：SQLAlchemy `create_all` 不会修改已存在的表——新增列/表上线到已有开发库时需手动 `ALTER TABLE`（如 `users` 加 `email_verified`）。
 
+## 站点初始化（2026-10 新增，PRD A16 / TRD Task 16）
+
+- `site_configs` 单行表（id=1）缓存站点配置：`is_initialized` / `email_verify_enabled`（默认 false）/ `site_icon_url` / SMTP 四字段；**初始化状态权威来源 = `users` 表存在 `role='admin'` 记录**，`GET /api/admin/init/status` 动态推导并同步缓存。
+- 接口：`GET /api/admin/init/status` + `POST /api/admin/init`，均在独立 router `app/routers/admin_init.py`，**无鉴权**（勿误挂 get_current_admin）。仅未初始化时可 POST：一次性创建博主（`email_verified=True`）+ 可选网站图标（png/jpg/webp/ico ≤1MB，base64→魔数校验→UUID 存 `uploads/site_icon/`）+ 邮箱验证开关；已初始化 → 409「站点已初始化」。
+- 邮箱验证开关：开启时注册后发验证邮件、登录未验证返回 403；关闭时注册/登录行为与旧版一致。SMTP 配置优先级：站点配置（site_configs）> `.env` 兜底（`app/services/mail.py` 的 `send_email` 支持 `smtp` 参数覆盖）。
+- 前端 `/admin/init`：独立于 Layout 的全屏路由（与着陆页并列）；未初始化显示初始化表单（博主账户 + 图标预览 + 开关展开 SMTP 区），已初始化显示提示并引导登录；`LoginPage` 支持 `location.state.initialized` 提示。
+
 ## 前端 UI 与导航权限（2026-10 新增）
 
 - 品牌：站点名「未完成的页」，标语「这里只放我真正在乎的文字」，定位「长期写作｜私人笔记｜阅读痕迹｜生活片段」；logo 为圆形徽章 `frontend/src/components/SiteLogo.tsx`（古铜金渐变 + "页"字，着陆页大号 + 侧栏品牌小号复用）；未引入图片资源。
