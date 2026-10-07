@@ -19,9 +19,10 @@ from app.models import (  # noqa: F401  注册全部表到 Base.metadata
     like,
     media,
     post,
+    site_config,
     user,
 )
-from app.routers import admin, auth, comments, drafts, me, posts
+from app.routers import admin, admin_init, auth, comments, drafts, me, posts
 from app.routers import media as media_router
 from app.services.errors import ServiceError
 
@@ -49,6 +50,7 @@ app.include_router(posts.router)
 app.include_router(media_router.router)
 app.include_router(comments.router)
 app.include_router(admin.router)
+app.include_router(admin_init.router)
 app.include_router(me.router)
 app.include_router(drafts.router)
 

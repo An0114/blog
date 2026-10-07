@@ -64,13 +64,15 @@ def db_session(test_engine) -> Generator[Session]:
 
 @pytest.fixture(autouse=True)
 def _clean_users(test_engine) -> None:
-    """每个用例开始前清空 media / users 表，保证用例间相互独立。
+    """每个用例开始前清空 media / users / site_configs 表，保证用例间相互独立。
 
     media 需先于 users 清理：未绑定动态的媒体（post_id 为空）不受 users 级联删除影响。
+    site_configs 为单行站点配置（无外键），需一并清空，避免初始化状态跨用例泄漏。
     """
     with test_engine.begin() as conn:
         conn.execute(text("DELETE FROM media"))
         conn.execute(text("DELETE FROM users"))
+        conn.execute(text("DELETE FROM site_configs"))
 
 
 @pytest.fixture()

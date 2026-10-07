@@ -36,3 +36,23 @@ class PermissionDeniedError(ServiceError):
 
     status_code = 403
     detail = "无权执行此操作"
+
+
+class AlreadyInitializedError(ServiceError):
+    """站点已初始化（存在 admin 用户），再次调用 init 被拒绝。"""
+
+    status_code = 409
+    detail = "站点已初始化"
+
+
+class ConfigError(ServiceError):
+    """站点配置不合法（如 SMTP 缺失、网站图标格式/大小不符）。"""
+
+    status_code = 400
+
+
+class EmailNotVerifiedError(ServiceError):
+    """邮箱验证开关开启时，未验证邮箱的用户禁止登录。"""
+
+    status_code = 403
+    detail = "邮箱未验证，请先完成邮箱验证"

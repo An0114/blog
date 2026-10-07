@@ -16,10 +16,13 @@ from app.schemas.auth import RegisterRequest
 from app.services.errors import (
     AccountDisabledError,
     DuplicateError,
+    EmailNotVerifiedError,
     InvalidCredentialsError,
     ServiceError,
 )
-from app.services.mail import send_email
+from app.services.mail import SmtpConfig, send_email
+from app.services.site_config import email_verify_enabled as site_email_verify_enabled
+from app.services.site_config import get_site_config
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +62,7 @@ def register(db: Session, payload: RegisterRequest) -> User:
     """创建新用户（role=user, status=active）。
 
     用户名 / 邮箱重复抛 DuplicateError(409)；密码只存 bcrypt 哈希。
+    站点开启邮箱验证（PRD A16）时，注册后发送验证邮件（email_verified 保持 false）。
     """
     email = _normalize_email(payload.email)
 
@@ -82,6 +86,8 @@ def register(db: Session, payload: RegisterRequest) -> User:
         db.rollback()
         raise DuplicateError("用户名或邮箱已存在") from None
     db.refresh(user)
+    if site_email_verify_enabled(db):
+        send_verify_email(db, user)
     return user
 
 
@@ -90,6 +96,7 @@ def authenticate(db: Session, email: str, password: str) -> tuple[User, str]:
 
     - 邮箱不存在或密码错误：401（统一提示，避免暴露账号是否存在）
     - 被禁用 / 已软删除：403（PRD A8）
+    - 站点开启邮箱验证且该邮箱未验证：403（PRD A16；admin 初始化时已验证，不受影响）
     """
     user = _get_by_email(db, _normalize_email(email))
     if user is None or not verify_password(password, user.password_hash):
@@ -98,6 +105,8 @@ def authenticate(db: Session, email: str, password: str) -> tuple[User, str]:
         raise AccountDisabledError("账号已被禁用")
     if user.status == "deleted":
         raise AccountDisabledError("账号已注销，无法登录")
+    if site_email_verify_enabled(db) and not user.email_verified:
+        raise EmailNotVerifiedError()
     return user, create_access_token(user.id)
 
 
@@ -132,8 +141,21 @@ def _consume_email_token(db: Session, token: str, purpose: str) -> User:
     return user
 
 
+def _smtp_from_config(db: Session) -> SmtpConfig | None:
+    """站点表 SMTP 配置（PRD A16：初始化时填写）；未填写返回 None（回退 .env）。"""
+    config = get_site_config(db)
+    if not config.smtp_host:
+        return None
+    return SmtpConfig(
+        host=config.smtp_host,
+        port=config.smtp_port or settings.smtp_port,
+        user=config.smtp_user or "",
+        password=config.smtp_password or "",
+    )
+
+
 def send_verify_email(db: Session, user: User) -> None:
-    """发送邮箱验证链接（二期：可选验证，不阻断登录）。"""
+    """发送邮箱验证链接（二期：可选验证；PRD A16 开关开启时注册后自动发送）。"""
     if user.email_verified:
         raise EmailAlreadyVerifiedError()
     email_token = _create_email_token(db, user.id, PURPOSE_VERIFY_EMAIL)
@@ -142,6 +164,7 @@ def send_verify_email(db: Session, user: User) -> None:
         user.email,
         "【个人博客】验证邮箱",
         f"请点击以下链接完成邮箱验证（{settings.email_token_expire_minutes} 分钟内有效）：\n{link}",
+        smtp=_smtp_from_config(db),
     )
 
 
@@ -166,6 +189,7 @@ def forgot_password(db: Session, email: str) -> None:
         user.email,
         "【个人博客】重置密码",
         f"请点击以下链接重置密码（{settings.email_token_expire_minutes} 分钟内有效）：\n{link}",
+        smtp=_smtp_from_config(db),
     )
 
 
