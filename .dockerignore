@@ -1,0 +1,31 @@
+# 构建上下文排除：保证镜像干净、无敏感文件（.env 绝不入镜像/入 Git，AGENTS.md 红线）
+.git
+**/.git
+
+# Python
+**/.venv
+**/venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.ruff_cache
+
+# 前端
+**/node_modules
+**/dist
+
+# 敏感与运行时数据
+**/.env
+backend/.env
+uploads
+backend/uploads
+backend/tests
+
+# 日志
+*.log
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

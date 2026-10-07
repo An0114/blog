@@ -1,0 +1,33 @@
+# 开发模式（叠加在生产 compose 之上，本地热重载）：
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# 数据库/上传数据与生产同卷；后端挂源码 --reload、前端 npm run dev。
+
+services:
+  backend:
+    # 覆盖启动命令：--reload 热重载
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # 挂载本地源码（含 backend/uploads，本机直接可见媒体文件）
+    volumes:
+      - ./backend:/app
+    # 开发模式放宽为 root：Windows/部分 Linux 挂载目录属主不一致时保证可写
+    user: root
+
+  frontend:
+    # 使用构建阶段镜像（node 环境），跑 vite dev
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: builder
+    command: npm run dev -- --host 0.0.0.0
+    environment:
+      # vite proxy 目标指向容器内后端服务名（vite.config.ts 读该变量，默认 127.0.0.1:8000 不变）
+      VITE_PROXY_TARGET: http://backend:8000
+    volumes:
+      - ./frontend:/app
+      # 匿名卷保留容器内 npm ci 的 node_modules（避免覆盖为 Windows 慢目录）
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "5173:5173"
+
+volumes:
+  frontend_node_modules:
