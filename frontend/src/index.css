@@ -762,20 +762,11 @@ a.contact-card:hover {
   }
 }
 
-/* ---------- 网站圆形 Logo（PRD A14） ---------- */
+/* ---------- 网站复古圆形徽章 Logo（PRD A14） ---------- */
 .site-logo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold), #e6c97e);
-  color: #241c0e;
-  font-family: 'Kaiti SC', 'STKaiti', '楷体', cursive;
-  font-weight: 700;
-  line-height: 1;
-  box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.35),
-    inset 0 0 0 2px rgba(255, 248, 230, 0.55);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 /* ---------- 着陆页（PRD A14） ---------- */
