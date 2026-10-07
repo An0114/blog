@@ -9,9 +9,10 @@ export function LoginPage() {
   const { login: saveSession } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const state = location.state as { registered?: boolean; reset?: boolean } | null
+  const state = location.state as { registered?: boolean; reset?: boolean; initialized?: boolean } | null
   const registered = state?.registered === true
   const reset = state?.reset === true
+  const initialized = state?.initialized === true
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -39,6 +40,7 @@ export function LoginPage() {
       <h1>登录</h1>
       {registered && <p className="success-text">注册成功，请登录。</p>}
       {reset && <p className="success-text">密码已重置，请使用新密码登录。</p>}
+      {initialized && <p className="success-text">站点初始化完成，请使用博主账户登录。</p>}
       <form onSubmit={handleSubmit}>
         <div className="field">
           <label htmlFor="email">邮箱</label>

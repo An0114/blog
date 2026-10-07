@@ -10,6 +10,7 @@ import { DraftsPage } from './pages/DraftsPage'
 import { FavoritesPage } from './pages/FavoritesPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { HomePage } from './pages/HomePage'
+import { InitPage } from './pages/InitPage'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { PostDetailPage } from './pages/PostDetailPage'
@@ -34,6 +35,8 @@ export default function App() {
     <Routes>
       {/* 着陆页：站点第一个页面（无侧栏，全屏） */}
       <Route path="/" element={<LandingPage />} />
+      {/* 站点初始化：仅未初始化时开放（无侧栏，独立全屏） */}
+      <Route path="/admin/init" element={<InitPage />} />
       <Route element={<Layout />}>
         <Route path="home" element={<HomePage />} />
         <Route path="posts/:id" element={<PostDetailPage />} />

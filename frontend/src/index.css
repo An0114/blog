@@ -637,6 +637,121 @@ a.contact-card:hover {
   font-size: 13px;
 }
 
+/* ---------- 站点初始化页 /admin/init（PRD A16） ---------- */
+.init-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(rgba(200, 162, 75, 0.06) 1px, transparent 1px),
+    radial-gradient(rgba(255, 240, 200, 0.05) 1px, transparent 1px);
+  background-size: 8px 8px, 12px 12px;
+  background-position: 0 0, 5px 5px;
+}
+
+.init-card {
+  width: 100%;
+  max-width: 540px;
+  margin: 0;
+}
+
+.init-head {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.init-head h1 {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: 10px 0 4px;
+}
+
+.init-icon-preview {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  margin-top: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--line-paper);
+  background: #fffdf6;
+  padding: 4px;
+}
+
+/* 开关（邮箱验证） */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--line-paper);
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.switch-slider::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fffdf6;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.switch input:checked + .switch-slider {
+  background: var(--gold);
+}
+
+.switch input:checked + .switch-slider::after {
+  transform: translateX(20px);
+}
+
+.switch-label {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+/* SMTP 展开区 */
+.smtp-box {
+  border: 1px dashed var(--line-paper);
+  border-radius: 10px;
+  padding: 12px 14px 4px;
+  margin-bottom: 16px;
+  background: rgba(255, 250, 235, 0.35);
+}
+
+.smtp-title {
+  margin: 0 0 10px;
+  font-weight: 600;
+  color: var(--gold-deep);
+}
+
+.smtp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+
 @media (max-width: 900px) {
   .home-grid {
     grid-template-columns: 1fr;
