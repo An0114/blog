@@ -44,7 +44,7 @@ MVP 表：`users / posts / media / comments`（结构见 TRD 第 5 节）。二�
 
 ## 前端 UI 与导航权限（2026-10 新增）
 
-- 品牌：站点名「未完成的页」，标语「这里只放我真正在乎的文字」，定位「长期写作｜私人笔记｜阅读痕迹｜生活片段」；logo 为圆形徽章 `frontend/src/components/SiteLogo.tsx`（古铜金渐变 + "页"字，着陆页大号 + 侧栏品牌小号复用）；未引入图片资源。
+- 品牌：站点名「未完成的页」，标语「这里只放我真正在乎的文字」，定位「长期写作｜私人笔记｜阅读痕迹｜生活片段」；logo 为复古圆形徽章 `frontend/src/components/SiteLogo.tsx`（黑底金环 + 环形排布标语 + 中心戴眼镜人物黑白剪影，纯内联 SVG 按 size 缩放，着陆页大号 + 侧栏品牌小号复用）；`frontend/public/favicon.svg` 为同款徽章，浏览器标签页与 `index.html` title 均用「未完成的页」。
 - 主题：深色文艺风格全量定义在 `frontend/src/index.css`（`:root` 色板 token、纸感卡片 `.page/.post-card`、侧栏 `.sidebar`）；页面级组件 pages/ 与可复用组件 components/ 约定不变。
 - 着陆页与滚动过渡（PRD A14）：路由 `/` = 着陆页 `LandingPage`（全屏无侧栏，含复古书写装饰纯 CSS）；`/home` = 动态首页（原 `/` 内容）；向下滚动（wheel/触摸）触发着陆页淡出 + 首页 `page-enter` 从右侧滑入；浏览器后退可回着陆页。
 - 导航可见性矩阵（前端约束，后端鉴权仍兜底；"关于我"为所有用户导航的**最后一个标签**）：
