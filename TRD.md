@@ -303,3 +303,65 @@ site_configs                                        -- 部署初始化：站点�
 - **性能**：列表接口本地 P95 < 300ms；图片懒加载；视频使用 HTML5 播放器。
 - **安全**（对应 PRD A9）：bcrypt 存密码；JWT 密钥走 .env、7 天过期；上传白名单 + 大小限制 + UUID 重命名；全部 SQL 走 ORM 参数化；CORS 白名单（仅允许你的域名）；前端对评论/正文做输出转义防 XSS；.env 与 uploads/ 不入 Git。
 - **部署**：Nginx 托管前端静态资源 + 反代 /api；HTTPS（Let's Encrypt，可选）；定期 pg_dump 备份数据库与 uploads/。
+
+## 10. 容器化部署（2026-10，Docker Compose）
+
+### 10.1 服务编排
+
+| 服务 | 镜像 | 对外端口 | 数据卷 | 就绪依赖 |
+|------|------|----------|--------|----------|
+| db | `postgres:17` | 不暴露（仅内网） | `blog_pgdata:/var/lib/postgresql/data` | - |
+| backend | 自建 `backend/Dockerfile`（python:3.14-slim 多阶段 + 非 root） | 不暴露（仅 frontend 反代） | `blog_uploads:/app/uploads`（媒体 + site_icon） | db `service_healthy` |
+| frontend | 自建 `frontend/Dockerfile`（node:22-alpine 构建 + nginx:1.27-alpine 托管） | `${HTTP_PORT:-80}:80` | - | backend `service_healthy` |
+
+- 对外仅暴露 frontend 端口；`/api` 与 `/uploads` 由容器内 Nginx 反代到 `backend:8000`（compose 服务名，不写死 IP）。
+- 反代关键点：SPA fallback（`try_files $uri /index.html`，否则刷新 `/login` 等路径 404）；`client_max_body_size 100m`（视频 ≤100MB，nginx 默认 1m 会 413）。
+- `depends_on` + healthcheck 保证启动顺序：backend 等 db 就绪（`pg_isready`），frontend 等 backend `/health` 就绪。
+
+### 10.2 环境变量（根目录 `.env`，模板见根 `.env.example`）
+
+| 变量 | 说明 | 默认 |
+|------|------|------|
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | 数据库账号/密码/库名（与 DATABASE_URL 拼接一致） | blog / 必填 / blog |
+| `JWT_SECRET_KEY` | **必须自生成**：`openssl rand -hex 32`；缺失时 compose 直接报错（`:?` 强制） | 必填 |
+| `CORS_ORIGINS` | 逗号分隔的前端域名白名单（PRD A9） | `http://localhost` |
+| `SMTP_HOST/PORT/USER/PASSWORD/MAIL_FROM` | 邮件服务；留空时验证/重置链接输出到后端日志（开发模式） | 空 |
+| `FRONTEND_BASE_URL` | 拼验证/重置邮件链接的前端地址 | `http://localhost` |
+| `HTTP_PORT` | 对外暴露的 frontend 端口 | 80 |
+
+- backend 容器由 compose `environment` **白名单注入**（DATABASE_URL 指向 `db:5432` 服务名；pydantic-settings 读环境变量，容器内无需 `.env` 文件）；db 容器只收 `POSTGRES_*` 三变量；**镜像内不含任何密钥文件**（.dockerignore 排除 + 不 COPY .env）。
+
+### 10.3 首次初始化流程
+
+```bash
+cp .env.example .env          # 填写 JWT_SECRET_KEY（openssl rand -hex 32）等
+docker compose up -d --build  # 一条命令启动全栈
+# 浏览器打开 http://<域名> → 未初始化自动可进 /admin/init
+#   → 创建博主账户（可选上传站点图标、配置邮箱验证开关与 SMTP）
+#   → 用博主账户登录 → 发布第一条动态
+```
+
+### 10.4 升级与备份
+
+- **日常更新**：`git pull && docker compose up -d --build`（只重建有变更的服务；数据卷不受影响）。
+- **备份数据库**：`docker compose exec db pg_dump -U <POSTGRES_USER> <POSTGRES_DB> > blog_backup.sql`。
+- **恢复数据库**：`docker compose exec -T db psql -U <POSTGRES_USER> <POSTGRES_DB> < blog_backup.sql`。
+- **备份上传媒体**：`docker run --rm -v blog_uploads:/data -v $(pwd):/backup alpine tar czf /backup/uploads_backup.tar.gz -C /data .`（恢复反向解包）。
+- **⚠️ create_all 不改旧表**：`Base.metadata.create_all` 只建新表、不修改已存在的表。后续新增列/表上线到已有数据库时，必须手动执行 `ALTER TABLE`（历史案例：`users` 加 `email_verified`），更新流程=改代码 → 手动 ALTER → 重启服务。
+
+### 10.5 开发模式（docker-compose.dev.yml）
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+- backend：挂载 `./backend:/app` + `uvicorn --reload` 热重载；frontend：`npm run dev`（`VITE_PROXY_TARGET=http://backend:8000`，vite.config 支持环境变量覆盖；本地直接 `npm run dev` 时默认 `127.0.0.1:8000` 不变）。
+- db 数据卷 `blog_pgdata` 与生产共享语义；上传走 `./backend/uploads` 本地目录（源码挂载内，本机直接可见）。
+- 端口：backend 8000、frontend 5173 映射到本机。
+
+### 10.6 镜像与安全
+
+- 后端镜像非 root 用户运行（`appuser`），`/app/uploads` 在镜像内预建并 chown（named volume 挂载继承属主）。
+- `.dockerignore`（根）排除 `.git/.venv/node_modules/dist/uploads/.env/__pycache__/tests` 等，保证镜像干净且无敏感文件。
+- 上传白名单/大小校验/魔数识别逻辑在业务代码层（容器化不修改），安全红线行为不变。
+
