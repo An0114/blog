@@ -171,7 +171,7 @@ export function PostDetailPage() {
             m.media_type === 'video' ? (
               <video key={m.id} src={m.url} controls preload="metadata" />
             ) : (
-              <img key={m.id} src={m.url} alt="动态图片" />
+              <img key={m.id} src={m.url} alt="动态图片" loading="lazy" />
             ),
           )}
         </div>
