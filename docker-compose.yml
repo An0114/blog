@@ -26,6 +26,9 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      args:
+        # 可选 PyPI 镜像加速（国内部署在 .env 设 PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple）
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
     restart: unless-stopped
     environment:
       # 连接串指向 compose 服务名 db（内网），账号密码与 POSTGRES_* 保持一致

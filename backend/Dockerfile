@@ -1,8 +1,13 @@
 # 多阶段构建：builder 安装依赖 → runtime 精简运行（无构建缓存、镜像小）
 FROM python:3.14-slim AS builder
 
+# 可选 PyPI 镜像（国内加速：docker compose build --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+# 或在 .env 设 PIP_INDEX_URL；默认官方源，开源友好）
+ARG PIP_INDEX_URL=https://pypi.org/simple
+
 ENV PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_INDEX_URL=${PIP_INDEX_URL}
 
 WORKDIR /build
 COPY backend/requirements.txt .
