@@ -17,7 +17,7 @@ FastAPI + React 的个人博客基础项目：博主发布"项目 / 日常 / 日
 | 创作辅助 | 草稿箱（保存/编辑/一键发布，媒体先传后绑）、上传进度条 |
 | 站点初始化 | 首次部署浏览器 `/admin/init` 创建博主账户（可传站点图标、开关邮箱验证与 SMTP） |
 | UI | 深色文艺主题「未完成的页」：着陆页 + 滚动过渡、复古圆形徽章 Logo、关于我页（联系方式自填）、导航按角色显隐 |
-| 部署 | Docker Compose 三服务（db/backend/frontend-nginx）一条命令启动；数据卷持久化 |
+| 部署 | Docker Compose 三服务（db/backend/frontend-nginx）一条命令启动；数据卷持久化；镜像发布至 GHCR |
 
 ### 项目现状（2026-10，重要）
 
@@ -28,7 +28,7 @@ FastAPI + React 的个人博客基础项目：博主发布"项目 / 日常 / 日
 - `·` **只允许博主一人发布内容**——注册用户只能评论/点赞/收藏；多作者发布未开放。
 - `·` **邮箱验证需要个人 SMTP 配置**——`/admin/init` 或 `.env` 配置后开启；**未配置 SMTP 时验证/重置链接输出到后端日志**（`docker compose logs backend` 查看）。
 - `·` **标签墙尚未实现**——首页侧栏的"标签墙"是静态占位文案（`frontend/src/pages/HomePage.tsx` 的 `SIDE` 常量），无数据模型支撑，可按需实现。
-- ✅ **项目已 Docker 容器化**（见下方启动）；镜像已发布到 Docker Hub 与 GHCR（见"方式 B"）。
+- ✅ **项目已 Docker 容器化**（见下方启动）；镜像已发布到 GHCR（见"方式 B"），Docker Hub 待发布。
 - `·` **关于我页的联系方式为空模板**——在 `frontend/src/pages/AboutPage.tsx` 的 `SITE` / `CONTACTS` 常量中自行填写平台名、账号、链接。
 
 ## 截图
@@ -43,7 +43,7 @@ FastAPI + React 的个人博客基础项目：博主发布"项目 / 日常 / 日
 
 ## 启动
 
-> 三种方式任选。**方式 A 当前可用**；方式 B 需镜像发布后；方式 C 为无 Docker 的本地开发。
+> 三种方式任选。**方式 A 当前可用**；方式 B（拉取 GHCR 镜像）已发布可用；方式 C 为无 Docker 的本地开发。
 
 ### 方式 A：克隆仓库 + Docker 构建（推荐）
 
@@ -66,19 +66,19 @@ docker compose up -d --build
 
 验证：`curl http://localhost/health` 返回 `{"status":"ok","database":"ok"}`。
 
-### 方式 B：直接拉取 Docker 镜像（镜像发布后）
+### 方式 B：直接拉取 GHCR 镜像（已发布，推荐二）
 
-镜像发布到 Docker Hub 后（发布命令示例：`docker tag blog-backend <你的账号>/blog-backend:latest && docker push ...`，frontend 同理），可免构建直接启动：
+镜像已发布到 GitHub Container Registry（[ghcr.io/an0114](https://github.com/users/An0114/packages)，与 GitHub 仓库 `An0114/-` 关联），可免构建直接启动：
 
 ```bash
 # 准备好 .env 后：
 docker compose up -d            # 自动拉取 compose 中指定的镜像
 # 或显式拉取：
-# docker pull <你的账号>/blog-backend:latest
-# docker pull <你的账号>/blog-frontend:latest
+docker pull ghcr.io/an0114/blog-backend:latest
+docker pull ghcr.io/an0114/blog-frontend:latest
 ```
 
-> ⚠️ 当前 compose 默认 `build` 本地构建；发布镜像后把 `docker-compose.yml` 中 `backend/frontend` 的 `build` 段替换为 `image: <你的账号>/blog-backend:latest` 即可切换为纯拉取模式。
+> 切换为纯拉取模式：把 `docker-compose.yml` 中 `backend` / `frontend` 的 `build` 段替换为 `image: ghcr.io/an0114/blog-backend:latest` / `image: ghcr.io/an0114/blog-frontend:latest`（再删除 `build` 段），即可 `docker compose up -d` 免构建启动。Docker Hub 镜像待发布（发布后在此补充 `docker.io/…` 地址）。
 
 ### 方式 C：本地开发（无 Docker）
 
