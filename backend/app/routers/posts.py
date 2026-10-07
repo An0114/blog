@@ -82,10 +82,10 @@ def get_post(
     user_id = current_user.id if current_user else None
     detail = PostOut.model_validate(post)
     detail.comments = comments_service.list_comments(db, post_id)
-    detail.like_count = posts_service.get_like_count(db, post_id)
-    detail.liked = posts_service.is_liked(db, post_id, user_id)
-    detail.favorite_count = favorites_service.get_favorite_count(db, post_id)
-    detail.favorited = favorites_service.is_favorited(db, post_id, user_id)
+    detail.like_count, detail.liked = posts_service.like_stats(db, post_id, user_id)
+    detail.favorite_count, detail.favorited = favorites_service.favorite_stats(
+        db, post_id, user_id
+    )
     return detail
 
 

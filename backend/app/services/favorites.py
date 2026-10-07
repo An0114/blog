@@ -53,6 +53,19 @@ def favorite_counts(db: Session, post_ids: list[int]) -> dict[int, int]:
     return {post_id: count for post_id, count in rows}
 
 
+def favorite_stats(db: Session, post_id: int, user_id: int | None) -> tuple[int, bool]:
+    """详情页一次查询拿到收藏数 + 当前用户是否已收藏（替代两次单查）。"""
+    rows = db.execute(
+        select(PostFavorite.post_id, func.count(), func.bool_or(PostFavorite.user_id == user_id))
+        .where(PostFavorite.post_id == post_id)
+        .group_by(PostFavorite.post_id)
+    ).all()
+    if not rows:
+        return 0, False
+    _, count, favorited = rows[0]
+    return int(count), bool(favorited)
+
+
 def get_favorite_count(db: Session, post_id: int) -> int:
     """查询单条动态收藏数。"""
     return db.scalar(

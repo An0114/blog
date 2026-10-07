@@ -8,7 +8,7 @@ TRD 的 /api/upload 独立于发布（先上传、后绑定到动态），上传
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, Text, func
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Integer, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -19,6 +19,8 @@ if TYPE_CHECKING:
 
 class Media(Base):
     __tablename__ = "media"
+    # post_id 索引：列表页 selectinload 按 post_id IN 批量取媒体（无索引会全表扫）
+    __table_args__ = (Index("ix_media_post_id", "post_id"),)
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     post_id: Mapped[int | None] = mapped_column(

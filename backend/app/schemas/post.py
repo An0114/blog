@@ -8,6 +8,17 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.schemas.comment import CommentOut
 from app.schemas.media import MediaOut
 
+
+class MediaListItem(BaseModel):
+    """列表场景的媒体精简模型：仅封面识别所需字段（对应 load 策略，避免懒加载）。"""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    type: str
+    file_path: str
+
+
 # 动态分类（TRD 第 5 节）：project / daily / diary
 PostCategory = Literal["project", "daily", "diary"]
 
@@ -56,8 +67,13 @@ class FavoriteResponse(BaseModel):
 
 
 class PostListItem(PostOut):
-    """动态列表条目：在详情基础上附加封面图 URL（取第一条图片媒体）。"""
+    """动态列表条目：在详情基础上附加封面图 URL（取第一条图片媒体）。
 
+    media 裁剪为列表所需字段（前端列表仅用 cover_url，不消费 media 明细），
+    减少序列化与传输体积；详情页仍用 PostOut.media（MediaOut 全量）。
+    """
+
+    media: list[MediaListItem] = Field(default_factory=list)
     cover_url: str | None = None
 
 

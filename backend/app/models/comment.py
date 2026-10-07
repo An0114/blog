@@ -19,7 +19,10 @@ if TYPE_CHECKING:
 
 class Comment(Base):
     __tablename__ = "comments"
-    __table_args__ = (Index("ix_comments_post_created", "post_id", text("created_at DESC")),)
+    __table_args__ = (
+        # (post_id, created_at DESC, id DESC)：按动态取评论倒序，含 id 尾键避免补排序
+        Index("ix_comments_post_created", "post_id", text("created_at DESC"), text("id DESC")),
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     post_id: Mapped[int] = mapped_column(

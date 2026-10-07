@@ -19,7 +19,17 @@ if TYPE_CHECKING:
 
 class Post(Base):
     __tablename__ = "posts"
-    __table_args__ = (Index("ix_posts_category_created_at", "category", text("created_at DESC")),)
+    __table_args__ = (
+        # 分类筛选 + 时间倒序（含 id 尾键，避免 Incremental Sort 补排序）
+        Index(
+            "ix_posts_category_created_at",
+            "category",
+            text("created_at DESC"),
+            text("id DESC"),
+        ),
+        # 全量列表（无分类）按时间倒序，避免 Seq Scan + 全量 Sort
+        Index("ix_posts_created_at_id", text("created_at DESC"), text("id DESC")),
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     author_id: Mapped[int] = mapped_column(

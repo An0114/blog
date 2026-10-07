@@ -77,7 +77,12 @@ def create_post(db: Session, author: User, payload: PostCreate) -> Post:
 def list_posts(
     db: Session, category: str | None, page: int, size: int
 ) -> tuple[list[Post], int]:
-    """动态列表：默认按发布时间倒序（PRD A5），支持分类筛选与分页。"""
+    """动态列表：默认按发布时间倒序（PRD A5），支持分类筛选与分页。
+
+    性能：media 用 selectinload 批量预加载（避免 N+1），且 media 依赖的
+    ix_media_post_id 索引支撑 IN 批量查询；响应层由 PostListItem 裁剪为
+    列表所需字段（cover_url 仅需 id/type/file_path），详见 schemas/post.py。
+    """
     stmt = (
         select(Post)
         .options(selectinload(Post.media))
@@ -130,6 +135,19 @@ def like_counts(db: Session, post_ids: list[int]) -> dict[int, int]:
         .group_by(PostLike.post_id)
     ).all()
     return {post_id: count for post_id, count in rows}
+
+
+def like_stats(db: Session, post_id: int, user_id: int | None) -> tuple[int, bool]:
+    """详情页一次查询拿到点赞数 + 当前用户是否已赞（替代两次单查）。"""
+    rows = db.execute(
+        select(PostLike.post_id, func.count(), func.bool_or(PostLike.user_id == user_id))
+        .where(PostLike.post_id == post_id)
+        .group_by(PostLike.post_id)
+    ).all()
+    if not rows:
+        return 0, False
+    _, count, liked = rows[0]
+    return int(count), bool(liked)
 
 
 def get_like_count(db: Session, post_id: int) -> int:
